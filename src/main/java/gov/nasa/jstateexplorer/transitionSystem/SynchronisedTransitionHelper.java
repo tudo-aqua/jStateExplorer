@@ -5,7 +5,7 @@
  */
 package gov.nasa.jstateexplorer.transitionSystem;
 
-import gov.nasa.jpf.psyco.search.datastructures.searchImage.SearchIterationImage;
+import gov.nasa.jstateexplorer.datastructures.searchImage.SearchIterationImage;
 
 /**
  *
@@ -21,5 +21,4 @@ public class SynchronisedTransitionHelper extends TransitionHelper {
   public SearchIterationImage applyTransition(SearchIterationImage image, Transition transition) {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
-
 }

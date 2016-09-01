@@ -15,11 +15,11 @@
  */
 package gov.nasa.jstateexplorer.datastructures.region;
 
-import gov.nasa.jpf.psyco.search.datastructures.state.State;
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.api.ValuationEntry;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
+import gov.nasa.jstateexplorer.datastructures.state.State;
 import java.io.IOException;
 import java.util.HashMap;
 

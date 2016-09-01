@@ -22,7 +22,7 @@ import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.expressions.Constant;
 import gov.nasa.jpf.constraints.expressions.NumericBooleanExpression;
 import gov.nasa.jpf.constraints.expressions.NumericComparator;
-import gov.nasa.jpf.psyco.search.SolverInstance;
+import gov.nasa.jstateexplorer.SolverInstance;
 /**
  * A SymbolicEntry is a variable assingment with an expression as value.
  */

@@ -15,7 +15,8 @@
  */
 package gov.nasa.jstateexplorer.datastructures.searchImage;
 
-import gov.nasa.jpf.psyco.search.datastructures.region.SymbolicRegion;
+import gov.nasa.jstateexplorer.datastructures.region.SymbolicRegion;
+
 /**
  * Used for StateImages produced by the symbolic search.
  */

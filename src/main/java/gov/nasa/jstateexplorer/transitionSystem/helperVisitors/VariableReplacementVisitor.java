@@ -22,7 +22,7 @@ import gov.nasa.jpf.constraints.expressions.Negation;
 import gov.nasa.jpf.constraints.expressions.NumericBooleanExpression;
 import gov.nasa.jpf.constraints.expressions.NumericCompound;
 import gov.nasa.jpf.constraints.expressions.PropositionalCompound;
-import gov.nasa.jpf.psyco.search.datastructures.VariableReplacementMap;
+import gov.nasa.jstateexplorer.datastructures.VariableReplacementMap;
 
 /**
  * This visitor is able to replace a Variable by any other expression 

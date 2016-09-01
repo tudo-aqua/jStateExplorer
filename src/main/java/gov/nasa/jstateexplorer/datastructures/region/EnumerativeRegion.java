@@ -15,9 +15,9 @@
  */
 package gov.nasa.jstateexplorer.datastructures.region;
 
-import gov.nasa.jpf.psyco.search.datastructures.state.EnumerativeState;
 import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.api.ValuationEntry;
+import gov.nasa.jstateexplorer.datastructures.state.EnumerativeState;
 
 public class EnumerativeRegion
         extends Region<ValuationEntry, EnumerativeState> {

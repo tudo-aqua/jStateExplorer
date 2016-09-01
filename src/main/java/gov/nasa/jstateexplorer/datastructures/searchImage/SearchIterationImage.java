@@ -15,7 +15,7 @@
  */
 package gov.nasa.jstateexplorer.datastructures.searchImage;
 
-import gov.nasa.jpf.psyco.search.datastructures.region.Region;
+import gov.nasa.jstateexplorer.datastructures.region.Region;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;

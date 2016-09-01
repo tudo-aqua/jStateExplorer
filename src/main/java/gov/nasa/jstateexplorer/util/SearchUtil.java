@@ -16,12 +16,11 @@
 package gov.nasa.jstateexplorer.util;
 
 import gov.nasa.jpf.constraints.api.Variable;
-import gov.nasa.jpf.psyco.search.SymbolicSearchEngine;
-import gov.nasa.jpf.psyco.search.datastructures.searchImage.SearchIterationImage;
-import gov.nasa.jpf.psyco.search.datastructures.region.Region;
-import gov.nasa.jpf.psyco.search.util.region.RegionUtil;
-import gov.nasa.jpf.psyco.search.transitionSystem.TransitionSystem;
-import gov.nasa.jpf.psyco.util.PsycoProfiler;
+import gov.nasa.jstateexplorer.SymbolicSearchEngine;
+import gov.nasa.jstateexplorer.datastructures.region.Region;
+import gov.nasa.jstateexplorer.datastructures.searchImage.SearchIterationImage;
+import gov.nasa.jstateexplorer.transitionSystem.TransitionSystem;
+import gov.nasa.jstateexplorer.util.region.RegionUtil;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -48,16 +47,16 @@ public class SearchUtil<T extends SearchIterationImage> {
     T iterationResult
             = applyIterationOfTheTransitionSystem(currentSearchState,
                     transitionSystem);
-    PsycoProfiler.newStates(iterationResult.getDepth(),
+    SearchProfiler.newStates(iterationResult.getDepth(),
             iterationResult.getNewStates().size());
     Region existingRegion =
             util.exists(iterationResult.getNewStates(),
                     variablesInPreviousState);
-    PsycoProfiler.startRenamingProfiler(currentSearchState.getDepth());
+    SearchProfiler.startRenamingProfiler(currentSearchState.getDepth());
 
     Region renamedRegion =
             rename(existingRegion, variablesInPreviousState);
-    PsycoProfiler.stopRenamingProfiler(currentSearchState.getDepth());
+    SearchProfiler.stopRenamingProfiler(currentSearchState.getDepth());
     iterationResult.setNewStates(renamedRegion);
     return iterationResult;
   }

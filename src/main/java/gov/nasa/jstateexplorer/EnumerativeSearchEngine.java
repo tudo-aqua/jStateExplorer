@@ -16,12 +16,12 @@
 package gov.nasa.jstateexplorer;
 
 import gov.nasa.jpf.constraints.api.ConstraintSolver;
-import gov.nasa.jpf.psyco.search.datastructures.searchImage.EnumerativeImage;
-import gov.nasa.jpf.psyco.search.datastructures.region.EnumerativeRegion;
-import gov.nasa.jpf.psyco.search.util.region.EnumerativeRegionUtil;
-import gov.nasa.jpf.psyco.search.transitionSystem.TransitionSystem;
-import gov.nasa.jpf.psyco.search.util.SearchUtil;
-import gov.nasa.jpf.psyco.util.PsycoProfiler;
+import gov.nasa.jstateexplorer.datastructures.region.EnumerativeRegion;
+import gov.nasa.jstateexplorer.datastructures.searchImage.EnumerativeImage;
+import gov.nasa.jstateexplorer.transitionSystem.TransitionSystem;
+import gov.nasa.jstateexplorer.util.SearchProfiler;
+import gov.nasa.jstateexplorer.util.SearchUtil;
+import gov.nasa.jstateexplorer.util.region.EnumerativeRegionUtil;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,10 +51,10 @@ public class EnumerativeSearchEngine {
               transitionSystem);
       EnumerativeRegion nextReachableStates = newImage.getNewStates();
 
-      PsycoProfiler.startDiffProfiler(newImage.getDepth());
+      SearchProfiler.startDiffProfiler(newImage.getDepth());
       newRegion = regionUtil.difference(nextReachableStates,
               reachableRegion);
-      PsycoProfiler.stopDiffProfieler(newImage.getDepth());
+      SearchProfiler.stopDiffProfieler(newImage.getDepth());
 
       reachableRegion = regionUtil.union(reachableRegion, newRegion);
       newImage.setReachableStates(reachableRegion);

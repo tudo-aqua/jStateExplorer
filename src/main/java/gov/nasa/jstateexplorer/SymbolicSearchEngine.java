@@ -15,13 +15,13 @@
  */
 package gov.nasa.jstateexplorer;
 
-import gov.nasa.jpf.psyco.search.transitionSystem.TransitionSystem;
 import gov.nasa.jpf.constraints.api.ConstraintSolver;
-import gov.nasa.jpf.psyco.search.datastructures.searchImage.SymbolicImage;
-import gov.nasa.jpf.psyco.search.datastructures.region.SymbolicRegion;
-import gov.nasa.jpf.psyco.search.util.region.SymbolicRegionUtil;
-import gov.nasa.jpf.psyco.search.util.SearchUtil;
-import gov.nasa.jpf.psyco.util.PsycoProfiler;
+import gov.nasa.jstateexplorer.datastructures.region.SymbolicRegion;
+import gov.nasa.jstateexplorer.datastructures.searchImage.SymbolicImage;
+import gov.nasa.jstateexplorer.transitionSystem.TransitionSystem;
+import gov.nasa.jstateexplorer.util.SearchProfiler;
+import gov.nasa.jstateexplorer.util.SearchUtil;
+import gov.nasa.jstateexplorer.util.region.SymbolicRegionUtil;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,8 +50,9 @@ public class SymbolicSearchEngine {
     SolverInstance.getInstance().setSolver(solver);
     SymbolicRegion newRegion, reachableRegion
             = new SymbolicRegion(transitionSystem.getInitValuation());
-    boolean isLimitedTransitionSystem = transitionSystem.isLimited();
-    logLimit(isLimitedTransitionSystem);
+//It would be an interesting research question, to figure this out
+//    boolean isLimitedTransitionSystem = transitionSystem.isLimited();
+//    logLimit(isLimitedTransitionSystem);
     SymbolicRegionUtil regionUtil = new SymbolicRegionUtil(solver);
     SearchUtil<SymbolicImage> searchUtil
             = new SearchUtil<>(regionUtil);
@@ -63,10 +64,10 @@ public class SymbolicSearchEngine {
       SymbolicImage newImage = searchUtil.post(currentSearchState,
               transitionSystem);
       SymbolicRegion nextReachableStates = newImage.getNewStates();
-      PsycoProfiler.startDiffProfiler(newImage.getDepth());
+      SearchProfiler.startDiffProfiler(newImage.getDepth());
       newRegion = regionUtil.difference(nextReachableStates,
               reachableRegion, solver);
-      PsycoProfiler.stopDiffProfieler(newImage.getDepth());
+      SearchProfiler.stopDiffProfieler(newImage.getDepth());
 
       reachableRegion = regionUtil.union(reachableRegion, newRegion);
 

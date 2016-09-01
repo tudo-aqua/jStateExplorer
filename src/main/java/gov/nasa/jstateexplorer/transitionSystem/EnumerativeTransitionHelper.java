@@ -15,16 +15,16 @@
  */
 package gov.nasa.jstateexplorer.transitionSystem;
 
-import gov.nasa.jpf.psyco.search.util.HelperMethods;
 import gov.nasa.jpf.constraints.api.ConstraintSolver.Result;
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.api.ValuationEntry;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
-import gov.nasa.jpf.psyco.search.datastructures.searchImage.EnumerativeImage;
-import gov.nasa.jpf.psyco.search.datastructures.searchImage.SearchIterationImage;
-import gov.nasa.jpf.psyco.search.datastructures.region.EnumerativeRegion;
-import gov.nasa.jpf.psyco.search.datastructures.state.EnumerativeState;
+import gov.nasa.jstateexplorer.datastructures.region.EnumerativeRegion;
+import gov.nasa.jstateexplorer.datastructures.searchImage.EnumerativeImage;
+import gov.nasa.jstateexplorer.datastructures.searchImage.SearchIterationImage;
+import gov.nasa.jstateexplorer.datastructures.state.EnumerativeState;
+import gov.nasa.jstateexplorer.util.HelperMethods;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -39,7 +39,7 @@ public class EnumerativeTransitionHelper extends TransitionHelper {
       for (EnumerativeState state
               : currentSearchStatus.getPreviousNewStates().values()) {
         if (satisfiesGuardCondition(state, transition, depth)) {
-          transition.setIsReached(true);
+          transition.setReached(true);
           EnumerativeState newState = executeTransition(transition, state);
           newRegion.put(HelperMethods.getUniqueStateName(), newState);
         }
@@ -54,13 +54,13 @@ public class EnumerativeTransitionHelper extends TransitionHelper {
           EnumerativeState state) {
     Expression resultingExpression = state.toExpression();
     Expression transitionEffects
-            = transition.getTransitionEffectAsTransition();
+            = transition.convertToExpression();
     resultingExpression
             = ExpressionUtil.and(resultingExpression, transitionEffects);
     logger.finest("gov.nasa.jpf.psyco.search.transitionSystem."
             + "EnumerativeTransitionHelper.executeTransition()");
     logger.finest(resultingExpression.toString());
-    Set oldVariables = new HashSet(transition.stateVariables);
+    Set oldVariables = new HashSet(transition.getStateVariables());
     Valuation result = new Valuation();
     Result res = solver.solve(resultingExpression, result);
     logger.finest("Valuation: " + result.toString());

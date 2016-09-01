@@ -15,26 +15,24 @@
  */
 package gov.nasa.jstateexplorer.transitionSystem;
 
-import gov.nasa.jpf.psyco.search.transitionSystem.helperVisitors.VariableReplacementVisitor;
-import gov.nasa.jpf.psyco.search.transitionSystem.helperVisitors.VariableAssignmentVisitor;
-import gov.nasa.jpf.psyco.search.util.HelperMethods;
-import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.expressions.Constant;
 import gov.nasa.jpf.constraints.expressions.NumericBooleanExpression;
 import gov.nasa.jpf.constraints.expressions.NumericComparator;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
-import gov.nasa.jpf.psyco.search.SymbolicSearchEngine;
-import gov.nasa.jpf.psyco.search.datastructures.NameMap;
-import gov.nasa.jpf.psyco.search.datastructures.searchImage.SearchIterationImage;
-import gov.nasa.jpf.psyco.search.datastructures.searchImage.SymbolicImage;
-import gov.nasa.jpf.psyco.search.datastructures.VariableReplacementMap;
-import gov.nasa.jpf.psyco.search.datastructures.state.SymbolicEntry;
-import gov.nasa.jpf.psyco.search.datastructures.region.SymbolicRegion;
-import gov.nasa.jpf.psyco.search.datastructures.state.SymbolicState;
-import gov.nasa.jpf.psyco.search.transitionSystem.helperVisitors.VariableRestrictionsVisitor;
-import gov.nasa.jpf.util.JPFLogger;
+import gov.nasa.jstateexplorer.SymbolicSearchEngine;
+import gov.nasa.jstateexplorer.datastructures.NameMap;
+import gov.nasa.jstateexplorer.datastructures.VariableReplacementMap;
+import gov.nasa.jstateexplorer.datastructures.region.SymbolicRegion;
+import gov.nasa.jstateexplorer.datastructures.searchImage.SearchIterationImage;
+import gov.nasa.jstateexplorer.datastructures.searchImage.SymbolicImage;
+import gov.nasa.jstateexplorer.datastructures.state.SymbolicEntry;
+import gov.nasa.jstateexplorer.datastructures.state.SymbolicState;
+import gov.nasa.jstateexplorer.transitionSystem.helperVisitors.VariableReplacementVisitor;
+import gov.nasa.jstateexplorer.transitionSystem.helperVisitors.VariableRestrictionsVisitor;
+import gov.nasa.jstateexplorer.transitionSystem.helperVisitors.VariableAssignmentVisitor;
+import gov.nasa.jstateexplorer.util.HelperMethods;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,16 +40,15 @@ import java.util.Set;
 
 public class SymbolicTransitionHelper extends TransitionHelper {
 
-  private final JPFLogger logger;
   private final VariableReplacementVisitor replacementVisitor;
   private final VariableRestrictionsVisitor restrictionsVisitor;
   private final VariableAssignmentVisitor assignmentVisitor;
 
   public SymbolicTransitionHelper() {
+    super();
     this.assignmentVisitor = new VariableAssignmentVisitor();
     this.replacementVisitor = new VariableReplacementVisitor();
     this.restrictionsVisitor = new VariableRestrictionsVisitor();
-    this.logger = JPF.getLogger(SymbolicSearchEngine.getSearchLoggerName());
   }
 
   @Override
@@ -78,7 +75,7 @@ public class SymbolicTransitionHelper extends TransitionHelper {
     Expression newValue = null;
     SymbolicState resultingState = new SymbolicState();
     if (!transition.isGuardSymbolicConstant()) {
-      newValue = transition.getGuardCondition();
+      newValue = transition.getGuard();
     }
     VariableReplacementMap replacements
             = extractValueReplacements(state);
@@ -88,7 +85,7 @@ public class SymbolicTransitionHelper extends TransitionHelper {
                       entry, transition, newValue, replacements);
       resultingState.add(primeEntry);
     }
-    transition.setIsReached(true);
+    transition.setReached(true);
     return resultingState;
   }
 
@@ -113,7 +110,7 @@ public class SymbolicTransitionHelper extends TransitionHelper {
           VariableReplacementMap replacements) {
     Variable oldVariable = entry.getVariable(),
             primeVariable = createPrimeVariable(oldVariable);
-    Expression transitionEffekt = transition.getTransitionEffect(oldVariable);
+    Expression transitionEffekt = transition.getEffect(oldVariable);
     Expression newValue
             = prefix != null
                 ? (Expression) prefix.accept(replacementVisitor, replacements)

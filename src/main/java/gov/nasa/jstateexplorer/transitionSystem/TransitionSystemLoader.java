@@ -32,16 +32,13 @@ import gov.nasa.jpf.constraints.expressions.NumericOperator;
 import gov.nasa.jpf.constraints.expressions.PropositionalCompound;
 import gov.nasa.jpf.constraints.expressions.UnaryMinus;
 import gov.nasa.jpf.constraints.types.BuiltinTypes;
-import gov.nasa.jpf.jdart.constraints.Path;
-import gov.nasa.jpf.jdart.constraints.PathResult;
-import gov.nasa.jpf.jdart.constraints.PostCondition;
-import gov.nasa.jpf.psyco.search.transitionSystem.helperVisitors
-        .TransitionEncoding;
-import gov.nasa.jpf.psyco.search.util.HelperMethods;
-import gov.nasa.jpf.util.JPFLogger;
+import gov.nasa.jstateexplorer.transitionSystem.helperVisitors.TransitionEncoding;
+import gov.nasa.jstateexplorer.util.HelperMethods;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 /**
  * The transition system loader is able to parse a transition 
@@ -52,7 +49,7 @@ public class TransitionSystemLoader {
 
   public String fileName;
   public String currentLine;
-  private Logger logger = JPFLogger.getLogger(HelperMethods.getLoggerName());
+  private Logger logger = Logger.getLogger(HelperMethods.getLoggerName());
 
   public TransitionSystemLoader(String fileName) {
     this.fileName = fileName;
@@ -102,8 +99,7 @@ public class TransitionSystemLoader {
       throw new IllegalStateException(
               "The error Transition is not parsed corretly");
     }
-    Path p = new Path(guard, new PathResult.ErrorResult(null, error, null));
-    return new Transition(p);
+    return new Transition(guard, error, null, false, true);
   }
 
   private Transition parseOkTransition() {
@@ -115,7 +111,7 @@ public class TransitionSystemLoader {
       throw new IllegalStateException("The input file is malformed."
               + "Missign Guard in Transition");
     }
-    PostCondition post = new PostCondition();
+    Map<Variable, Expression<Boolean>> post = new HashMap<>();
     if (nextTokenIs(TransitionEncoding.transitionBody)) {
       currentLine = currentLine.substring(2);
 
@@ -127,11 +123,10 @@ public class TransitionSystemLoader {
                 "The transition Line cannot be parsed entirely");
       }
     }
-    Path p = new Path(guard, new PathResult.OkResult(null, post));
-    return new Transition(p);
+    return new Transition(guard, post, true, false);
   }
 
-  private PostCondition parseTransitionEffect(PostCondition post) {
+  private Map<Variable, Expression<Boolean>> parseTransitionEffect(Map<Variable, Expression<Boolean>> post) {
     currentLine = currentLine.substring(2);
     Variable effectedVar = null;
     if (nextTokenIs(TransitionEncoding.variable)) {
@@ -142,7 +137,7 @@ public class TransitionSystemLoader {
     if (currentLine.startsWith(";")) {
       currentLine = currentLine.substring(1);
     }
-    post.addCondition(effectedVar, effect);
+    post.put(effectedVar, effect);
     return post;
   }
 

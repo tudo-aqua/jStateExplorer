@@ -15,15 +15,14 @@
  */
 package gov.nasa.jstateexplorer.transitionSystem;
 
-import gov.nasa.jpf.psyco.search.util.HelperMethods;
 import gov.nasa.jpf.constraints.api.ConstraintSolver.Result;
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
-import gov.nasa.jpf.psyco.search.SolverInstance;
-import gov.nasa.jpf.psyco.search.datastructures.searchImage.SearchIterationImage;
-import gov.nasa.jpf.psyco.search.datastructures.region.Region;
-import gov.nasa.jpf.psyco.search.datastructures.state.State;
-import gov.nasa.jpf.util.JPFLogger;
+import gov.nasa.jstateexplorer.SolverInstance;
+import gov.nasa.jstateexplorer.datastructures.region.Region;
+import gov.nasa.jstateexplorer.datastructures.searchImage.SearchIterationImage;
+import gov.nasa.jstateexplorer.datastructures.state.State;
+import gov.nasa.jstateexplorer.util.HelperMethods;
 import java.util.logging.Logger;
 
 /**
@@ -34,8 +33,8 @@ import java.util.logging.Logger;
 public abstract class TransitionHelper {
 
   protected SolverInstance solver = SolverInstance.getInstance();
-  protected final Logger logger
-          = JPFLogger.getLogger(HelperMethods.getLoggerName());
+  protected static final Logger logger
+          = Logger.getLogger(HelperMethods.getLoggerName());
 
   public abstract SearchIterationImage applyTransition(SearchIterationImage image,
           Transition transition);
@@ -43,12 +42,12 @@ public abstract class TransitionHelper {
   public SearchIterationImage applyError(SearchIterationImage searchStatus,
           Transition transition) {
     int depth = searchStatus.getDepth();
-    String error = transition.getError();
+    String error = transition.getErrorMessage();
     Region<?, State<?>> reachableStates = searchStatus.getReachableStates();
     for (State state : reachableStates.values()) {
       if (satisfiesGuardCondition(state, transition, depth)
               && !transition.isReached()) {
-        transition.setIsReached(true);
+        transition.setReached(true);
         searchStatus.addErrorInCurrentDepth(error);
       }
     }
@@ -58,7 +57,7 @@ public abstract class TransitionHelper {
   protected boolean satisfiesGuardCondition(State state,
           Transition transition, int depth) throws IllegalStateException {
     Expression guardTest = state.toExpression();
-    guardTest = ExpressionUtil.and(guardTest, transition.getGuardCondition());
+    guardTest = ExpressionUtil.and(guardTest, transition.getGuard());
     Result res = solver.isSatisfiable(guardTest);
     if (null != res) {
       switch (res) {

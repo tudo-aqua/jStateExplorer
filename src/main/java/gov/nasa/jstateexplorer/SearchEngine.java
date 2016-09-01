@@ -18,6 +18,14 @@ package gov.nasa.jstateexplorer;
 import gov.nasa.jpf.constraints.api.ConstraintSolver;
 import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.api.ValuationEntry;
+import gov.nasa.jstateexplorer.datastructures.searchImage.EnumerativeImage;
+import gov.nasa.jstateexplorer.datastructures.searchImage.SymbolicImage;
+import gov.nasa.jstateexplorer.transitionSystem.EnumerativeTransitionHelper;
+import gov.nasa.jstateexplorer.transitionSystem.SymbolicTransitionHelper;
+import gov.nasa.jstateexplorer.transitionSystem.TransitionHelper;
+import gov.nasa.jstateexplorer.transitionSystem.TransitionSystem;
+import gov.nasa.jstateexplorer.util.HelperMethods;
+import gov.nasa.jstateexplorer.util.SearchProfiler;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,12 +41,12 @@ public class SearchEngine {
 
   private Logger logger;
   private String folderName = "default";
-  PsycoConfig pconf;
+  SearchConfig sconf;
 
-  public SearchEngine(PsycoConfig pconf) {
-    this.pconf = pconf;
-    logger = JPFLogger.getLogger(HelperMethods.getLoggerName());
-    updateFolderName(pconf);
+  public SearchEngine(SearchConfig sconf) {
+    this.sconf = sconf;
+    logger = Logger.getLogger(HelperMethods.getLoggerName());
+    updateFolderName(sconf);
   }
 
   /**
@@ -47,74 +55,89 @@ public class SearchEngine {
   * Search results might be written into files, in case PSYCO is configured
   * to do so.
   */
-  public void executeSearch(SummaryStore store,
+  public int executeSearch(TransitionSystem system,
           ConstraintSolver solver) {
-    if (pconf.shouldUseEnumerativeSearch()) {
-      PsycoProfiler.reset();
-      executeEnumerativeSearch(store, solver);
+    int depthEnumerative = -1, depthSymbolic = -1;
+    if (sconf.shouldUseEnumerativeSearch()) {
+      SearchProfiler.reset();
+      depthEnumerative = executeEnumerativeSearch(system, solver);
     }
-    if (pconf.shouldUseSymbolicSearch()) {
-      PsycoProfiler.reset();
-      executeSymbolicSearch(store, solver);
+    if (sconf.shouldUseSymbolicSearch()) {
+      SearchProfiler.reset();
+      depthSymbolic = executeSymbolicSearch(system, solver);
+    }
+    if(depthEnumerative != -1 && depthSymbolic != -1 && depthEnumerative != depthSymbolic){
+      String msg = "The enumerative Search and the symbolic Search don't reach the same result!";
+      throw new IllegalStateException(msg);
+    }else if(depthEnumerative != -1){
+      return depthEnumerative;
+    }else if(depthSymbolic != -1){
+      return depthSymbolic;
+    }else{
+      String msg = "Cannot determine Search result!";
+      throw new RuntimeException(msg);
     }
   }
 
-  private void executeEnumerativeSearch(SummaryStore store,
+  private int executeEnumerativeSearch(TransitionSystem system,
           ConstraintSolver solver) {
     logger.info("Start enumerative search");
-    Valuation initValuation = fix_init_valuation(store.getInitialValuation());
+    Valuation initValuation = fix_init_valuation(system.getInitValuation());
+    system.setInitValuation(initValuation);
     TransitionHelper helper = new EnumerativeTransitionHelper();
-    TransitionSystem system = new TransitionSystem(initValuation,
-            convertTransitionPaths(store), helper);
+    system.setHelper(helper);
     logger.info(system.toString());
-    if(pconf.isSaveTransitionSystem()){
-      String transitionSystemFile = pconf.getResultFolderName() 
-              + "/transitionSystem.ts";
-      system.writeToFile(transitionSystemFile);
-    }
+//    if(sconf.isSaveTransitionSystem()){
+//      String transitionSystemFile = pconf.getResultFolderName() 
+//              + "/transitionSystem.ts";
+//      system.writeToFile(transitionSystemFile);
+//    }
     EnumerativeImage searchResult
             = EnumerativeSearchEngine.enumerativBreadthFirstSearch(
                     system,
-                    solver, pconf.getMaxSearchDepth());
+                    solver, sconf.getMaxSearchDepth());
     logger.info("Enumerative search done. Here is the result:");
     StringBuilder searchResultString = new StringBuilder();
-    
-    searchResult.print(searchResultString);
+    try {
+      searchResult.print(searchResultString);
+    } catch (IOException ex) {
+      Logger.getLogger(SearchEngine.class.getName())
+              .log(Level.SEVERE, null, ex);
+    }
 
     logger.fine(searchResultString.toString());
     logger.info("Enumerative Search determined:");
     logger.info("Max search depth k = " + searchResult.getDepth());
     if (searchResult.getDepth() != Integer.MAX_VALUE) {
       logger.info("Set Psyco maxDepth to k.");
-      pconf.updateMaxDepth(searchResult.getDepth());
     }
-    if (pconf.isSaveSearchResult()) {
-      String prefix = "enumerative-";
-      ResultSaver.writeResultToFolder(searchResult, folderName,
-              prefix);
-      PsycoProfiler.writeRunToFolder(folderName, prefix);
-    }
+//    if (pconf.isSaveSearchResult()) {
+//      String prefix = "enumerative-";
+//      ResultSaver.writeResultToFolder(searchResult, folderName,
+//              prefix);
+//      SearchProfiler.writeRunToFolder(folderName, prefix);
+//    }
+    return searchResult.getDepth();
   }
 
-  private void executeSymbolicSearch(SummaryStore store,
+  private int executeSymbolicSearch(TransitionSystem system,
           ConstraintSolver solver) {
     logger.info("Start symbolic search");
-    Valuation initValuation = fix_init_valuation(store.getInitialValuation());
+    Valuation initValuation = fix_init_valuation(system.getInitValuation());
+    system.setInitValuation(initValuation);
     TransitionHelper helper = new SymbolicTransitionHelper();
     SolverInstance.getInstance().setSolver(solver);
-    TransitionSystem transitionSystem
-            = new TransitionSystem(initValuation,
-                    convertTransitionPaths(store), helper);
-    if(pconf.isSaveTransitionSystem()){
-      String transitionSystemFile = pconf.getResultFolderName() 
-              + "/transitionSystem.ts";
-      transitionSystem.writeToFile(transitionSystemFile);
-    }
-    logger.fine(transitionSystem.toString());
+    system.setHelper(helper);
+//    if(pconf.isSaveTransitionSystem()){
+//      String transitionSystemFile = pconf.getResultFolderName() 
+//              + "/transitionSystem.ts";
+//      transitionSystem.writeToFile(transitionSystemFile);
+//    }
+    logger.fine(system.toString());
     SymbolicImage searchResult
             = SymbolicSearchEngine.symbolicBreadthFirstSearch(
-                    transitionSystem,
-                    solver, pconf.getMaxSearchDepth());
+                    system,
+                    solver, sconf.getMaxSearchDepth());
     logger.info("symbolic search terminated for following reason:");
     if (searchResult.getDepth() == Integer.MAX_VALUE) {
       logger.info("Symbolic search hit predefined max"
@@ -128,33 +151,18 @@ public class SearchEngine {
     try {
       searchResult.print(searchResultString);
     } catch (IOException ex) {
-      logger.severe(ex.getMessage());
+      Logger.getLogger(SearchEngine.class.getName()).log(Level.SEVERE, null, ex);
     }
     logger.fine(searchResultString.toString());
     logger.info("Symbolic Search determined:");
     logger.info("Max search depth k = " + searchResult.getDepth());
-    if (searchResult.getDepth() != Integer.MAX_VALUE) {
-      logger.info("Set Psyco maxDepth to k.");
-      pconf.updateMaxDepth(searchResult.getDepth());
-    }
-    if (pconf.isSaveSearchResult()) {
-      String prefix = "symbolic-";
-      ResultSaver.writeResultToFolder(searchResult,
-              transitionSystem, folderName, prefix);
-      PsycoProfiler.writeRunToFolder(folderName, prefix);
-    }
-  }
-
-  private List<Path> convertTransitionPaths(SummaryStore store) {
-    List<Path> paths = new ArrayList<>();
-    Set<String> keys = store.getConcolicMethodIds();
-    for (String id : keys) {
-      MethodSummary summary = store.getSummary(id);
-      for (Path p : summary) {
-        paths.add(p);
-      }
-    }
-    return paths;
+//    if (sconf.isSaveSearchResult()) {
+//      String prefix = "symbolic-";
+//      ResultSaver.writeResultToFolder(searchResult,
+//              transitionSystem, folderName, prefix);
+//      SearchProfiler.writeRunToFolder(folderName, prefix);
+//    }
+    return searchResult.getDepth();
   }
 
   /**
@@ -172,8 +180,8 @@ public class SearchEngine {
     return result;
   }
 
-  private void updateFolderName(PsycoConfig pconf) {
-    folderName = pconf.getResultFolderName();
+  private void updateFolderName(SearchConfig pconf) {
+    folderName = pconf.getResultFolder();
     File file = new File(folderName);
     if (!file.exists()) {
       file.mkdirs();
@@ -181,6 +189,6 @@ public class SearchEngine {
   }
 
   public void saveProfilerResults() {
-    PsycoProfiler.writeRunToFolder(folderName);
+    SearchProfiler.writeRunToFolder(folderName);
   }
 }

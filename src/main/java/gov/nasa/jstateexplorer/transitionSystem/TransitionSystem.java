@@ -19,21 +19,18 @@ import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.api.ValuationEntry;
 import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
-import gov.nasa.jpf.jdart.constraints.Path;
-import gov.nasa.jpf.psyco.search.datastructures.searchImage.SearchIterationImage;
-import gov.nasa.jpf.psyco.search.transitionSystem.helperVisitors
-        .ExpressionConverterVisitor;
-import gov.nasa.jpf.psyco.search.transitionSystem.helperVisitors
-        .TransitionEncoding;
-import gov.nasa.jpf.psyco.search.util.HelperMethods;
-import gov.nasa.jpf.psyco.util.PsycoProfiler;
-import gov.nasa.jpf.util.JPFLogger;
+import gov.nasa.jstateexplorer.datastructures.searchImage.SearchIterationImage;
+import gov.nasa.jstateexplorer.transitionSystem.helperVisitors.ExpressionConverterVisitor;
+import gov.nasa.jstateexplorer.transitionSystem.helperVisitors.TransitionEncoding;
+import gov.nasa.jstateexplorer.util.HelperMethods;
+import gov.nasa.jstateexplorer.util.SearchProfiler;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -51,7 +48,7 @@ public class TransitionSystem<T extends TransitionHelper> {
   private T helper;
 
   private String currentProfilerRun = null;
-  private Logger logger = JPFLogger.getLogger(HelperMethods.getLoggerName());
+  private Logger logger = Logger.getLogger(HelperMethods.getLoggerName());
 
   public TransitionSystem() {
     transitions = new ArrayList<>();
@@ -69,9 +66,9 @@ public class TransitionSystem<T extends TransitionHelper> {
   }
 
   public TransitionSystem(
-          Valuation initValuation, List<Path> paths, T helper) {
+          Valuation initValuation, List<Transition> transitions, T helper) {
     this(helper);
-    this.transitions = convertPathsToTransitions(paths);
+    this.transitions = transitions;
     this.initValuation = initValuation;
   }
 
@@ -81,13 +78,6 @@ public class TransitionSystem<T extends TransitionHelper> {
 
   public void setHelper(T helper) {
     this.helper = helper;
-  }
-
-  public void add(Path p) {
-    if (p != null) {
-      Transition t = new Transition(p);
-      transitions.add(t);
-    }
   }
 
   public void add(Transition t) {
@@ -103,7 +93,7 @@ public class TransitionSystem<T extends TransitionHelper> {
   public List<Transition> getConsideredOkTransitions() {
     ArrayList<Transition> returnList = new ArrayList<>();
     for (Transition t : transitions) {
-      if (t.isOK()) {
+      if (t.isOk()) {
         if (t.isStutterTransition()) {
           continue;
         }
@@ -113,8 +103,13 @@ public class TransitionSystem<T extends TransitionHelper> {
     return returnList;
   }
 
-  public void setTransitions(List<Path> transitions) {
-    this.transitions = convertPathsToTransitions(transitions);
+  public void setTransitions(List<Transition> transitions) {
+    if(transitions != null){
+      this.transitions = transitions;
+    }else{
+      String msg = "You are not allowed to set transitions to null.";
+      throw new IllegalStateException(msg);
+    }
   }
 
   public Valuation getInitValuation() {
@@ -135,34 +130,11 @@ public class TransitionSystem<T extends TransitionHelper> {
     return returnList;
   }
 
-  public boolean isLimited() {
-    boolean limited = true;
-    for (Transition t : transitions) {
-      if (!t.isLimitedTransition()) {
-        logger.finer("gov.nasa.jpf.psyco.search.transitionSystem"
-                + ".TransitionSystem.isLimited()");
-        logger.finer("unlimitedTransition: " + t.getPath().toString());
-        limited = false;
-      }
-    }
-    return limited;
-  }
-
-  private List<Transition> convertPathsToTransitions(List<Path> paths) {
-    ArrayList<Transition> tmpTransitions = new ArrayList();
-    for (Path p : paths) {
-      tmpTransitions.add(new Transition(p));
-    }
-    return tmpTransitions;
-  }
-
   private List<Transition> getStutterTransition() {
     ArrayList<Transition> returnList = new ArrayList<>();
     for (Transition t : transitions) {
-      if (t.isOK()) {
-        if (t.isStutterTransition()) {
+      if (t.isStutterTransition()) {
           returnList.add(t);
-        }
       }
     }
     return returnList;
@@ -206,13 +178,8 @@ public class TransitionSystem<T extends TransitionHelper> {
   private String convertPathListToString(List<Transition> transitions) {
     StringBuilder builder = new StringBuilder();
     for (Transition t : transitions) {
-      try {
-        Path p = t.getPath();
-        p.print(builder);
-        builder.append("\n");
-      } catch (IOException ex) {
-        logger.severe(ex.toString());
-      }
+      builder.append(t.toString());
+      builder.append("\n");
     }
     return builder.toString();
   }
@@ -223,11 +190,11 @@ public class TransitionSystem<T extends TransitionHelper> {
               + " the system, before you can use it.");
     }
     alreadyReachedStates.increaseDepth(1);
-    PsycoProfiler.startTransitionProfiler(alreadyReachedStates.getDepth());
+    SearchProfiler.startTransitionProfiler(alreadyReachedStates.getDepth());
     for (Transition t : transitions) {
       alreadyReachedStates = t.applyOn(alreadyReachedStates, helper);
     }
-    PsycoProfiler.stopTransitionProfiler(alreadyReachedStates.getDepth());
+    SearchProfiler.stopTransitionProfiler(alreadyReachedStates.getDepth());
     return alreadyReachedStates;
   }
 
@@ -244,7 +211,7 @@ public class TransitionSystem<T extends TransitionHelper> {
           errorNonReached++;
         }
       }
-      if (t.isOK()) {
+      if (t.isOk()) {
         if (t.isReached()) {
           normalTransitionReached++;
         } else {
@@ -270,49 +237,49 @@ public class TransitionSystem<T extends TransitionHelper> {
     return statistic.toString();
   }
 
-  public void writeToFile(String fileName) {
-    try (PrintWriter writer = new PrintWriter(fileName);) {
-      ExpressionConverterVisitor visitor = new ExpressionConverterVisitor();
-      HashMap<Class, String> data = exctractDataTypes();
-      String initState = convert(initValuation, data);
-      writer.println(initState);
-      for (Transition t : transitions) {
-        String transformedTransition = t.convertForFile(data);
-        writer.println(transformedTransition);
-      }
-    } catch (FileNotFoundException ex) {
-      logger.severe(ex.toString());
+//  public void writeToFile(String fileName) {
+//    try (PrintWriter writer = new PrintWriter(fileName);) {
+//      ExpressionConverterVisitor visitor = new ExpressionConverterVisitor();
+//      HashMap<Class, String> data = exctractDataTypes();
+//      String initState = convert(initValuation, data);
+//      writer.println(initState);
+//      for (Transition t : transitions) {
+//        String transformedTransition = t.convertForFile(data);
+//        writer.println(transformedTransition);
+//      }
+//    } catch (FileNotFoundException ex) {
+//      logger.severe(ex.toString());
+//
+//    }
+//  }
 
-    }
-  }
-
-  private HashMap<Class, String> exctractDataTypes() {
-    Set<Variable> variables = new HashSet<>();
-    HashMap<Class, String> result = new HashMap<>();
-    for (Transition t : transitions) {
-      if (t.isOK()) {
-        variables.addAll(ExpressionUtil.freeVariables(
-                t.getTransitionEffectAsTransition()));
-      }
-    }
-    for (Variable var : variables) {
-      Class clazz = var.getType().getClass();
-      result.put(clazz, clazz.getName().replace(";", ""));
-    }
-    return result;
-  }
-
-  private String convert(
-          Valuation initValuation, HashMap<Class, String> data) {
-    ExpressionConverterVisitor converter = new ExpressionConverterVisitor();
-    String result = TransitionEncoding.valuation + ":";
-    for (ValuationEntry entry : initValuation) {
-      String var = (String) entry.getVariable().accept(converter, data);
-      String value = entry.getValue().toString();
-      result += TransitionEncoding.valuationEntry + ":" + var
-              + ":" + value + ";";
-    }
-    result += ";";
-    return result;
-  }
+//  private HashMap<Class, String> exctractDataTypes() {
+//    Set<Variable> variables = new HashSet<>();
+//    HashMap<Class, String> result = new HashMap<>();
+//    for (Transition t : transitions) {
+//      if (t.isOK()) {
+//        variables.addAll(ExpressionUtil.freeVariables(
+//                t.getTransitionEffectAsTransition()));
+//      }
+//    }
+//    for (Variable var : variables) {
+//      Class clazz = var.getType().getClass();
+//      result.put(clazz, clazz.getName().replace(";", ""));
+//    }
+//    return result;
+//  }
+//
+//  private String convert(
+//          Valuation initValuation, HashMap<Class, String> data) {
+//    ExpressionConverterVisitor converter = new ExpressionConverterVisitor();
+//    String result = TransitionEncoding.valuation + ":";
+//    for (ValuationEntry entry : initValuation) {
+//      String var = (String) entry.getVariable().accept(converter, data);
+//      String value = entry.getValue().toString();
+//      result += TransitionEncoding.valuationEntry + ":" + var
+//              + ":" + value + ";";
+//    }
+//    result += ";";
+//    return result;
+//  }
 }

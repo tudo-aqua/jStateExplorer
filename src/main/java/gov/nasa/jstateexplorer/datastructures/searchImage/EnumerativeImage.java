@@ -15,7 +15,8 @@
  */
 package gov.nasa.jstateexplorer.datastructures.searchImage;
 
-import gov.nasa.jpf.psyco.search.datastructures.region.EnumerativeRegion;
+import gov.nasa.jstateexplorer.datastructures.region.EnumerativeRegion;
+
 
 /**
  * Used for StateImages produced by the enumerative search.

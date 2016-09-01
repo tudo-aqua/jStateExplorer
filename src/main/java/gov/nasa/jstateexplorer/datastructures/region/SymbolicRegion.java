@@ -15,9 +15,9 @@
  */
 package gov.nasa.jstateexplorer.datastructures.region;
 
-import gov.nasa.jpf.psyco.search.datastructures.state.SymbolicState;
-import gov.nasa.jpf.psyco.search.datastructures.state.SymbolicEntry;
 import gov.nasa.jpf.constraints.api.Valuation;
+import gov.nasa.jstateexplorer.datastructures.state.SymbolicEntry;
+import gov.nasa.jstateexplorer.datastructures.state.SymbolicState;
 
 public class SymbolicRegion extends Region<SymbolicEntry, SymbolicState> {
 
