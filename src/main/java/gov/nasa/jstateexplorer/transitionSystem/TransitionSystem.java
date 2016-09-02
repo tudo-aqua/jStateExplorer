@@ -237,49 +237,49 @@ public class TransitionSystem<T extends TransitionHelper> {
     return statistic.toString();
   }
 
-//  public void writeToFile(String fileName) {
-//    try (PrintWriter writer = new PrintWriter(fileName);) {
-//      ExpressionConverterVisitor visitor = new ExpressionConverterVisitor();
-//      HashMap<Class, String> data = exctractDataTypes();
-//      String initState = convert(initValuation, data);
-//      writer.println(initState);
-//      for (Transition t : transitions) {
-//        String transformedTransition = t.convertForFile(data);
-//        writer.println(transformedTransition);
-//      }
-//    } catch (FileNotFoundException ex) {
-//      logger.severe(ex.toString());
-//
-//    }
-//  }
+  public void writeToFile(String fileName) {
+    try (PrintWriter writer = new PrintWriter(fileName);) {
+      ExpressionConverterVisitor visitor = new ExpressionConverterVisitor();
+      HashMap<Class, String> data = exctractDataTypes();
+      String initState = convert(initValuation, data);
+      writer.println(initState);
+      for (Transition t : transitions) {
+        String transformedTransition = t.convertForFile(data);
+        writer.println(transformedTransition);
+      }
+    } catch (FileNotFoundException ex) {
+      logger.severe(ex.toString());
 
-//  private HashMap<Class, String> exctractDataTypes() {
-//    Set<Variable> variables = new HashSet<>();
-//    HashMap<Class, String> result = new HashMap<>();
-//    for (Transition t : transitions) {
-//      if (t.isOK()) {
-//        variables.addAll(ExpressionUtil.freeVariables(
-//                t.getTransitionEffectAsTransition()));
-//      }
-//    }
-//    for (Variable var : variables) {
-//      Class clazz = var.getType().getClass();
-//      result.put(clazz, clazz.getName().replace(";", ""));
-//    }
-//    return result;
-//  }
-//
-//  private String convert(
-//          Valuation initValuation, HashMap<Class, String> data) {
-//    ExpressionConverterVisitor converter = new ExpressionConverterVisitor();
-//    String result = TransitionEncoding.valuation + ":";
-//    for (ValuationEntry entry : initValuation) {
-//      String var = (String) entry.getVariable().accept(converter, data);
-//      String value = entry.getValue().toString();
-//      result += TransitionEncoding.valuationEntry + ":" + var
-//              + ":" + value + ";";
-//    }
-//    result += ";";
-//    return result;
-//  }
+    }
+  }
+
+  private HashMap<Class, String> exctractDataTypes() {
+    Set<Variable> variables = new HashSet<>();
+    HashMap<Class, String> result = new HashMap<>();
+    for (Transition t : transitions) {
+      if (t.isOk()) {
+        variables.addAll(ExpressionUtil.freeVariables(
+                t.convertToExpression()));
+      }
+    }
+    for (Variable var : variables) {
+      Class clazz = var.getType().getClass();
+      result.put(clazz, clazz.getName().replace(";", ""));
+    }
+    return result;
+  }
+
+  private String convert(
+          Valuation initValuation, HashMap<Class, String> data) {
+    ExpressionConverterVisitor converter = new ExpressionConverterVisitor();
+    String result = TransitionEncoding.valuation + ":";
+    for (ValuationEntry entry : initValuation) {
+      String var = (String) entry.getVariable().accept(converter, data);
+      String value = entry.getValue().toString();
+      result += TransitionEncoding.valuationEntry + ":" + var
+              + ":" + value + ";";
+    }
+    result += ";";
+    return result;
+  }
 }

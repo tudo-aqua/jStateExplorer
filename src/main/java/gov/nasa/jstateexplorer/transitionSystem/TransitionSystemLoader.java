@@ -89,9 +89,19 @@ public class TransitionSystemLoader {
       guard = parseGuard();
     }
     currentLine = currentLine.substring(4);
-    int index = currentLine.indexOf(';');
+    int index = currentLine.indexOf(':');
     String error = currentLine.substring(0, index);
-    currentLine = currentLine.substring(index + 1).replace("\n", "");
+    currentLine = currentLine.substring(index + 1);
+    index = currentLine.indexOf(":");
+    String stackTrace = currentLine.substring(0, index);
+    System.out.println("gov.nasa.jstateexplorer.transitionSystem.TransitionSystemLoader.parseErrorTransition()");
+    System.out.println("StackTrace: " + stackTrace);
+    currentLine = currentLine.substring(index + 1);
+    Map<Variable, Expression<Boolean>> post = new HashMap<>();
+    while (nextTokenIs(TransitionEncoding.effect)) {
+        post = parseTransitionEffect(post);
+    }
+    currentLine = currentLine.substring(0 + 1).replace("\n", "");
     if (!currentLine.equals(";;")) {
       System.err.println("gov.nasa.jpf.psyco.search.transitionSystem"
               + ".TransitionSystemLoader.parseErrorTransition()");
@@ -99,7 +109,13 @@ public class TransitionSystemLoader {
       throw new IllegalStateException(
               "The error Transition is not parsed corretly");
     }
-    return new Transition(guard, error, null, false, true);
+    if(error.equals("")){
+      error = null;
+    }
+    if(stackTrace.equals("")){
+      stackTrace = null;
+    }
+    return new Transition(guard, error, stackTrace, post, false, true);
   }
 
   private Transition parseOkTransition() {

@@ -6,6 +6,8 @@ import gov.nasa.jpf.constraints.expressions.NumericBooleanExpression;
 import gov.nasa.jpf.constraints.expressions.NumericComparator;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import gov.nasa.jstateexplorer.datastructures.searchImage.SearchIterationImage;
+import gov.nasa.jstateexplorer.transitionSystem.helperVisitors.ExpressionConverterVisitor;
+import gov.nasa.jstateexplorer.transitionSystem.helperVisitors.TransitionEncoding;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -61,6 +63,26 @@ public class Transition {
     this.guard = guard;
     this.errorMessage = errorMsg;
     this.stackTrace = stackTrace;
+    this.isError = error;
+    this.isOk = ok;
+  }
+
+  public Transition(Expression guard, String errorMsg, String stackTrace, Map<Variable, Expression<Boolean>> effects, boolean ok, boolean error) {
+    this();
+    this.guard = guard;
+    this.errorMessage = errorMsg;
+    this.stackTrace = stackTrace;
+    this.effects = effects;
+    this.isError = error;
+    this.isOk = ok;
+  }
+
+  public Transition(Expression guard, String errorMsg, String stackTrace, String id, boolean ok, boolean error) {
+    this();
+    this.guard = guard;
+    this.errorMessage = errorMsg;
+    this.stackTrace = stackTrace;
+    this.id = id;
     this.isError = error;
     this.isOk = ok;
   }
@@ -137,7 +159,10 @@ public class Transition {
   }
 
   public boolean isStutterTransition() {
-    return modified.isEmpty() && isOk();
+    if(isOk()){
+      return modified.isEmpty();
+    }
+    return false;
   }
 
   public String getErrorMessage() {
@@ -248,4 +273,43 @@ public class Transition {
     }
   }
 
+  public String convertForFile(HashMap<Class, String> data){
+    ExpressionConverterVisitor expressionConverter = 
+            new ExpressionConverterVisitor();
+    String guardForFile = 
+            (String) guard.accept(expressionConverter, data);
+    String effectsForFile;
+    if(isOk()){
+      effectsForFile = convertEffectsForFile(data);
+      return TransitionEncoding.okTransition + ":" 
+              + TransitionEncoding.guard + ":" + guardForFile + ";" 
+              + TransitionEncoding.transitionBody + ":" + effectsForFile + ";" + ";";
+    }else{
+      effectsForFile = convertErrorTransitiontForFile(data);
+      return TransitionEncoding.errorTransition + ":" 
+              + TransitionEncoding.guard + ":" + guardForFile + ":" 
+              + TransitionEncoding.transitionBody + ":" + effectsForFile + ";" + ";";
+    }
+  }
+
+  private String convertErrorTransitiontForFile(HashMap<Class, String> data) {
+    String errorTransitionForFile = TransitionEncoding.error + ":";
+    errorTransitionForFile += (errorMessage == null?"":errorMessage);
+    errorTransitionForFile += ":" + (stackTrace == null?"":stackTrace);
+    errorTransitionForFile += ":" + convertEffectsForFile(data) + ";";
+    return errorTransitionForFile; 
+  }
+
+  private String convertEffectsForFile(HashMap<Class, String> data){
+    ExpressionConverterVisitor expressionConverter = 
+            new ExpressionConverterVisitor();
+    String effectsForFile = "";
+    for(Variable var: effects.keySet()){
+      String key = (String) var.accept(expressionConverter, data);
+      String effect = 
+            (String) effects.get(var).accept(expressionConverter, data);
+      effectsForFile += TransitionEncoding.effect + ":" + key + ":" + effect + ";";
+    }
+    return effectsForFile;
+  }
 }

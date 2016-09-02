@@ -25,12 +25,10 @@ import gov.nasa.jstateexplorer.transitionSystem.SymbolicTransitionHelper;
 import gov.nasa.jstateexplorer.transitionSystem.TransitionHelper;
 import gov.nasa.jstateexplorer.transitionSystem.TransitionSystem;
 import gov.nasa.jstateexplorer.util.HelperMethods;
+import gov.nasa.jstateexplorer.util.ResultSaver;
 import gov.nasa.jstateexplorer.util.SearchProfiler;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -54,6 +52,9 @@ public class SearchEngine {
   * algorithm using the a PsycoConfig element.
   * Search results might be written into files, in case PSYCO is configured
   * to do so.
+   * @param system The transition system, that should be unrolled.
+   * @param solver A Constraint Solver needed to solve Constraints during the search.
+   * @return Return the max depth k at which a fix point is reached
   */
   public int executeSearch(TransitionSystem system,
           ConstraintSolver solver) {
@@ -87,11 +88,11 @@ public class SearchEngine {
     TransitionHelper helper = new EnumerativeTransitionHelper();
     system.setHelper(helper);
     logger.info(system.toString());
-//    if(sconf.isSaveTransitionSystem()){
-//      String transitionSystemFile = pconf.getResultFolderName() 
-//              + "/transitionSystem.ts";
-//      system.writeToFile(transitionSystemFile);
-//    }
+    if(sconf.isSaveTransitionSystem()){
+      String transitionSystemFile = sconf.getResultFolder() 
+              + "/transitionSystem.ts";
+      system.writeToFile(transitionSystemFile);
+    }
     EnumerativeImage searchResult
             = EnumerativeSearchEngine.enumerativBreadthFirstSearch(
                     system,
@@ -111,12 +112,12 @@ public class SearchEngine {
     if (searchResult.getDepth() != Integer.MAX_VALUE) {
       logger.info("Set Psyco maxDepth to k.");
     }
-//    if (pconf.isSaveSearchResult()) {
-//      String prefix = "enumerative-";
-//      ResultSaver.writeResultToFolder(searchResult, folderName,
-//              prefix);
-//      SearchProfiler.writeRunToFolder(folderName, prefix);
-//    }
+    if (sconf.isSaveSearchResult()) {
+      String prefix = "enumerative-";
+      ResultSaver.writeResultToFolder(searchResult, folderName,
+              prefix);
+      SearchProfiler.writeRunToFolder(folderName, prefix);
+    }
     return searchResult.getDepth();
   }
 
@@ -128,11 +129,11 @@ public class SearchEngine {
     TransitionHelper helper = new SymbolicTransitionHelper();
     SolverInstance.getInstance().setSolver(solver);
     system.setHelper(helper);
-//    if(pconf.isSaveTransitionSystem()){
-//      String transitionSystemFile = pconf.getResultFolderName() 
-//              + "/transitionSystem.ts";
-//      transitionSystem.writeToFile(transitionSystemFile);
-//    }
+    if(sconf.isSaveTransitionSystem()){
+      String transitionSystemFile = sconf.getResultFolder() 
+              + "/transitionSystem.ts";
+      system.writeToFile(transitionSystemFile);
+    }
     logger.fine(system.toString());
     SymbolicImage searchResult
             = SymbolicSearchEngine.symbolicBreadthFirstSearch(
@@ -156,12 +157,12 @@ public class SearchEngine {
     logger.fine(searchResultString.toString());
     logger.info("Symbolic Search determined:");
     logger.info("Max search depth k = " + searchResult.getDepth());
-//    if (sconf.isSaveSearchResult()) {
-//      String prefix = "symbolic-";
-//      ResultSaver.writeResultToFolder(searchResult,
-//              transitionSystem, folderName, prefix);
-//      SearchProfiler.writeRunToFolder(folderName, prefix);
-//    }
+    if (sconf.isSaveSearchResult()) {
+      String prefix = "symbolic-";
+      ResultSaver.writeResultToFolder(searchResult,
+              system, folderName, prefix);
+      SearchProfiler.writeRunToFolder(folderName, prefix);
+    }
     return searchResult.getDepth();
   }
 

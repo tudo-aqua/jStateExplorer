@@ -9,23 +9,26 @@ import java.io.File;
 public class SearchConfig {
   
   private String resultFolder;
-  private boolean enumerativeSearch, symbolicSearch, synchronisedSearch;
+  private boolean enumerativeSearch, symbolicSearch,
+          saveTransitionSystem, saveSearchResult;
   private int maxSearchDepth = Integer.MIN_VALUE;
   
   public SearchConfig(){
     setResultFolder("result/default");
-    enumerativeSearch = false;
-    symbolicSearch = true;
-    synchronisedSearch = false;
+    this.enumerativeSearch = false;
+    this.symbolicSearch = true;
+    this.saveTransitionSystem = false;
+    this.saveSearchResult = false;
   }
 
   public SearchConfig(String resultFolder, boolean enumerative,
-          boolean symbolic, boolean synchronised, int maxDepth){
+          boolean symbolic, int maxDepth, boolean saveTransitionSystem, boolean saveSearchResult){
     setResultFolder(resultFolder);
-    enumerativeSearch = enumerative;
-    symbolicSearch = symbolic;
-    synchronisedSearch = synchronised;
-    maxSearchDepth = maxDepth;
+    this.enumerativeSearch = enumerative;
+    this.symbolicSearch = symbolic;
+    this.maxSearchDepth = maxDepth;
+    this.saveTransitionSystem = saveTransitionSystem;
+    this.saveSearchResult = saveSearchResult;
   }
   public String getResultFolder() {
     return resultFolder;
@@ -55,14 +58,6 @@ public class SearchConfig {
     this.symbolicSearch = symbolicSearch;
   }
 
-  public boolean shouldUseSynchronisedSearch() {
-    return synchronisedSearch;
-  }
-
-  public void setSynchronisedSearch(boolean synchronisedSearch) {
-    this.synchronisedSearch = synchronisedSearch;
-  }
-
   public int getMaxSearchDepth() {
     return maxSearchDepth;
   }
@@ -70,6 +65,20 @@ public class SearchConfig {
   public void setMaxSearchDepth(int maxSearchDepth) {
     this.maxSearchDepth = maxSearchDepth;
   }
-  
-  
+
+  public boolean isSaveTransitionSystem() {
+    return saveTransitionSystem;
+  }
+
+  public void setSaveTransitionSystem(boolean saveTransitionSystem) {
+    this.saveTransitionSystem = saveTransitionSystem;
+  }
+
+  public boolean isSaveSearchResult() {
+    return saveSearchResult;
+  }
+
+  public void setSaveSearchResult(boolean SaveSearchResult) {
+    this.saveSearchResult = SaveSearchResult;
+  }
 }
