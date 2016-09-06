@@ -77,7 +77,7 @@ public class SymbolicRegionUtil
       }
     }
 
-    logger.finest(" renamed State: " + state);
+    logger.finest("renamed State: " + state);
     return state;
   }
 

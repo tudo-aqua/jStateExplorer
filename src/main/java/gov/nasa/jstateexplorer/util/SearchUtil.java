@@ -40,6 +40,11 @@ public class SearchUtil<T extends SearchIterationImage> {
     this.util = util;
   }
 
+  public SearchUtil(RegionUtil util, Logger logger) {
+    this.logger = logger;
+    this.util = util;
+  }
+
   public T post(T currentSearchState,
           TransitionSystem transitionSystem) {
     Set<Variable<?>> variablesInPreviousState =

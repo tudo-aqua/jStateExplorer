@@ -39,6 +39,16 @@ public class EnumerativeSearchEngine {
     logger.setLevel(level);
     return enumerativBreadthFirstSearch(transitionSystem, solver, maxSearchDepth);
   }
+
+  public static EnumerativeImage enumerativBreadthFirstSearch(
+          TransitionSystem transitionSystem,
+          ConstraintSolver solver,
+          int maxSearchDepth,
+          Logger logger){
+    EnumerativeSearchEngine.logger = logger;
+    return enumerativBreadthFirstSearch(transitionSystem, solver, maxSearchDepth);
+  }
+
   public static EnumerativeImage enumerativBreadthFirstSearch(
           TransitionSystem transitionSystem,
           ConstraintSolver solver,
@@ -48,7 +58,7 @@ public class EnumerativeSearchEngine {
             = new EnumerativeRegion(transitionSystem.getInitValuation());
     EnumerativeRegionUtil regionUtil = new EnumerativeRegionUtil(solver);
     SearchUtil<EnumerativeImage> searchUtil
-            = new SearchUtil<>(regionUtil);
+            = new SearchUtil<>(regionUtil, logger);
     EnumerativeImage currentSearchState
             = new EnumerativeImage(reachableRegion);
     currentSearchState.setPreviousNewStates(reachableRegion);

@@ -69,6 +69,11 @@ public class VariableReplacementVisitor
   }
 
   @Override
+  public Expression visit(Variable expr, VariableReplacementMap data) {
+    return data.getOrDefault(expr, expr);
+  }
+
+  @Override
   protected <E> Expression<?> defaultVisit(Expression<E> expression,
           VariableReplacementMap data) {
     for (Expression expr : expression.getChildren()) {
