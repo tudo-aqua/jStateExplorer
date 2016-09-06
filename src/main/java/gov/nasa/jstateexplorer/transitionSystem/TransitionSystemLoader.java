@@ -94,8 +94,6 @@ public class TransitionSystemLoader {
     currentLine = currentLine.substring(index + 1);
     index = currentLine.indexOf(":");
     String stackTrace = currentLine.substring(0, index);
-    System.out.println("gov.nasa.jstateexplorer.transitionSystem.TransitionSystemLoader.parseErrorTransition()");
-    System.out.println("StackTrace: " + stackTrace);
     currentLine = currentLine.substring(index + 1);
     Map<Variable, Expression<Boolean>> post = new HashMap<>();
     while (nextTokenIs(TransitionEncoding.effect)) {

@@ -42,13 +42,20 @@ public class SymbolicSearchEngine {
 
   static String loggerName = "psyco";
   private static Logger logger = Logger.getLogger(loggerName);
-public static SymbolicImage symbolicBreadthFirstSearch(
+  public static SymbolicImage symbolicBreadthFirstSearch(
           TransitionSystem transitionSystem,
           ConstraintSolver solver,
           int maxSearchDepth, Level logLevel){
-  logger.setLevel(logLevel);
-  return symbolicBreadthFirstSearch(transitionSystem, solver, maxSearchDepth);
-}
+    logger.setLevel(logLevel);
+    return symbolicBreadthFirstSearch(transitionSystem, solver, maxSearchDepth);
+  }
+  public static SymbolicImage symbolicBreadthFirstSearch(
+          TransitionSystem transitionSystem,
+          ConstraintSolver solver,
+          int maxSearchDepth, Logger logger){
+    SymbolicSearchEngine.logger = logger;
+    return symbolicBreadthFirstSearch(transitionSystem, solver, maxSearchDepth);
+  }
   public static SymbolicImage symbolicBreadthFirstSearch(
           TransitionSystem transitionSystem,
           ConstraintSolver solver,
@@ -61,7 +68,7 @@ public static SymbolicImage symbolicBreadthFirstSearch(
 //    logLimit(isLimitedTransitionSystem);
     SymbolicRegionUtil regionUtil = new SymbolicRegionUtil(solver);
     SearchUtil<SymbolicImage> searchUtil
-            = new SearchUtil<>(regionUtil);
+            = new SearchUtil<>(regionUtil, logger);
     //We start to count interation based on 1. 0 is skipped.
     SymbolicImage currentSearchState
             = new SymbolicImage(reachableRegion);

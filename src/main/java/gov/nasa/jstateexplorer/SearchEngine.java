@@ -54,6 +54,12 @@ public class SearchEngine {
     updateFolderName(sconf);
   }
 
+  public SearchEngine(SearchConfig sconf, Logger logger) {
+    this.sconf = sconf;
+    logger = Logger.getLogger(HelperMethods.getLoggerName());
+    this.logger =logger;
+    updateFolderName(sconf);
+  }
   /**
   * This method exchanges results with PSYCOs interface learning
   * algorithm using the a PsycoConfig element.
@@ -103,7 +109,7 @@ public class SearchEngine {
     EnumerativeImage searchResult
             = EnumerativeSearchEngine.enumerativBreadthFirstSearch(
                     system,
-                    solver, sconf.getMaxSearchDepth());
+                    solver, sconf.getMaxSearchDepth(), logger);
     logger.info("Enumerative search done. Here is the result:");
     StringBuilder searchResultString = new StringBuilder();
     try {
@@ -145,7 +151,7 @@ public class SearchEngine {
     SymbolicImage searchResult
             = SymbolicSearchEngine.symbolicBreadthFirstSearch(
                     system,
-                    solver, sconf.getMaxSearchDepth());
+                    solver, sconf.getMaxSearchDepth(), logger);
     logger.info("symbolic search terminated for following reason:");
     if (searchResult.getDepth() == Integer.MAX_VALUE) {
       logger.info("Symbolic search hit predefined max"
