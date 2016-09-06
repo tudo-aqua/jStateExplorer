@@ -30,7 +30,15 @@ import java.util.logging.Logger;
  * This class is an enumerative breadth-first search.
  */
 public class EnumerativeSearchEngine {
-
+  private static Logger logger = Logger.getLogger("psyco");
+  public static EnumerativeImage enumerativBreadthFirstSearch(
+          TransitionSystem transitionSystem,
+          ConstraintSolver solver,
+          int maxSearchDepth,
+          Level level){
+    logger.setLevel(level);
+    return enumerativBreadthFirstSearch(transitionSystem, solver, maxSearchDepth);
+  }
   public static EnumerativeImage enumerativBreadthFirstSearch(
           TransitionSystem transitionSystem,
           ConstraintSolver solver,
@@ -74,7 +82,6 @@ public class EnumerativeSearchEngine {
   }
 
   private static void logState(EnumerativeImage newImage) {
-    Logger logger = Logger.getLogger("psyco");
     StringBuilder builder = new StringBuilder();
     try {
       newImage.print(builder);

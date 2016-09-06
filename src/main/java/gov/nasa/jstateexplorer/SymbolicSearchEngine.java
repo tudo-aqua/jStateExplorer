@@ -41,8 +41,14 @@ import java.util.logging.Logger;
 public class SymbolicSearchEngine {
 
   static String loggerName = "psyco";
-  Logger logger = Logger.getLogger(loggerName);
-
+  private static Logger logger = Logger.getLogger(loggerName);
+public static SymbolicImage symbolicBreadthFirstSearch(
+          TransitionSystem transitionSystem,
+          ConstraintSolver solver,
+          int maxSearchDepth, Level logLevel){
+  logger.setLevel(logLevel);
+  return symbolicBreadthFirstSearch(transitionSystem, solver, maxSearchDepth);
+}
   public static SymbolicImage symbolicBreadthFirstSearch(
           TransitionSystem transitionSystem,
           ConstraintSolver solver,
