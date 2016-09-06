@@ -22,6 +22,7 @@ import gov.nasa.jstateexplorer.transitionSystem.SymbolicTransitionHelper;
 import gov.nasa.jstateexplorer.transitionSystem.TransitionHelper;
 import gov.nasa.jstateexplorer.transitionSystem.TransitionSystem;
 import gov.nasa.jstateexplorer.transitionSystem.TransitionSystemLoader;
+import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -32,7 +33,7 @@ import java.util.Properties;
 
 public class Main {
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         if (args.length < 1) {
             System.out.println("Usage: stateexplorer [file]");
@@ -54,6 +55,10 @@ public class Main {
         SearchIterationImage image = 
                 SymbolicSearchEngine.symbolicBreadthFirstSearch(system,
                         solver, Integer.MIN_VALUE);        
+        
+        image.print(System.out);
+        
+        System.out.println("### done ###");
     } 
     
 }
