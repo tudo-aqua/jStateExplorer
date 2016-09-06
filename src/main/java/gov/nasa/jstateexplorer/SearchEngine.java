@@ -47,6 +47,13 @@ public class SearchEngine {
     updateFolderName(sconf);
   }
 
+  public SearchEngine(SearchConfig sconf, Level level) {
+    this.sconf = sconf;
+    logger = Logger.getLogger(HelperMethods.getLoggerName());
+    logger.setLevel(level);
+    updateFolderName(sconf);
+  }
+
   /**
   * This method exchanges results with PSYCOs interface learning
   * algorithm using the a PsycoConfig element.
