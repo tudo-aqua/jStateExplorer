@@ -156,14 +156,13 @@ public class TransitionSystem<T extends TransitionHelper> {
     return transitionSystem;
   }
 
-  public String toStringWithId(){
-      String result = "";
-      for(Transition t: transitions){
-          result += t.toStringWithId();
-      }
-      return result;
+  public String toStringWithID(){
+    String trans = "";
+    for(Transition t: transitions){
+      trans += t.toStringWithId();
+    }
+    return trans;
   }
-
 
   public String completeToString() {
     String transitionSystem = toString();

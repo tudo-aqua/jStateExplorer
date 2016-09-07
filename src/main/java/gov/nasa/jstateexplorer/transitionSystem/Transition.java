@@ -212,10 +212,18 @@ public class Transition {
     }
   }
 
-  public String toStringWithId(){
-      return "ID: " + id + " " + toString();
+  public String toStringWithId() {
+    String returnValue = "id: " + id + ": ";
+    if (isOk()) {
+      return returnValue + toStringOk();
+    } else if (isError()) {
+      return returnValue + toStringError();
+    } else {
+      String msg = "This Transition is neither ok nor erroneous.";
+      throw new RuntimeException(msg);
+    }
   }
-  
+
   private String toStringOk() {
     StringBuilder builder = new StringBuilder();
     builder.append("[OK]: ");
