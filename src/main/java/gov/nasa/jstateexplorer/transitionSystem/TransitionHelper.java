@@ -36,7 +36,18 @@ public abstract class TransitionHelper {
   protected static final Logger logger
           = Logger.getLogger(HelperMethods.getLoggerName());
 
-  public abstract SearchIterationImage applyTransition(SearchIterationImage image,
+  public SearchIterationImage applyTransition(SearchIterationImage image,
+          Transition transition){
+      if(transition.isOk()){
+          return applyOkTransition(image, transition);
+      }else if (transition.isError()) {
+      return applyError(image, transition);
+    } else {
+      String msg = "This transition is neither ok nor erroneous. Cannot apply!";
+      throw new IllegalStateException(msg);
+    }
+  }
+  public abstract SearchIterationImage applyOkTransition(SearchIterationImage image,
           Transition transition);
 
   public SearchIterationImage applyError(SearchIterationImage searchStatus,

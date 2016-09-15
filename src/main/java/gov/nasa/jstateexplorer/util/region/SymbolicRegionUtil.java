@@ -84,6 +84,7 @@ public class SymbolicRegionUtil
   private SymbolicState renameAllVariableEntrys(
           SymbolicState oldState, Variable primeName, Variable varibaleName) {
     SymbolicState renamedState = new SymbolicState();
+    renamedState.setHistory(oldState.getHistory());
     NameMap renameVariable = new NameMap();
     renameVariable.mapNames(varibaleName.getName(), getUniqueName());
     logger.finest("renameMap: " + renameVariable.toString());
@@ -108,6 +109,7 @@ public class SymbolicRegionUtil
   private SymbolicState renameParameterInEntrys(SymbolicState renamedState,
           Variable var, Variable newParameter) {
     SymbolicState resultState = new SymbolicState();
+    resultState.setHistory(renamedState.getHistory());
     NameMap rename = new NameMap();
     rename.mapNames(var.getName(), newParameter.getName());
     for (SymbolicEntry entry : renamedState) {

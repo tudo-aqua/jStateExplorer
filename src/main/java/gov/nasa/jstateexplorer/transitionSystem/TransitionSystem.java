@@ -156,6 +156,15 @@ public class TransitionSystem<T extends TransitionHelper> {
     return transitionSystem;
   }
 
+  public String toStringWithId(){
+      String result = "";
+      for(Transition t: transitions){
+          result += t.toStringWithId();
+      }
+      return result;
+  }
+
+
   public String completeToString() {
     String transitionSystem = toString();
     List<Transition> okPaths = getConsideredOkTransitions();
@@ -185,7 +194,8 @@ public class TransitionSystem<T extends TransitionHelper> {
   }
 
   public SearchIterationImage applyOn(SearchIterationImage alreadyReachedStates) {
-    if (helper == null) {
+    TransitionMonitor.startRuning();
+      if (helper == null) {
       throw new IllegalStateException("You must set a TransitionHelper for"
               + " the system, before you can use it.");
     }
@@ -193,6 +203,9 @@ public class TransitionSystem<T extends TransitionHelper> {
     SearchProfiler.startTransitionProfiler(alreadyReachedStates.getDepth());
     for (Transition t : transitions) {
       alreadyReachedStates = t.applyOn(alreadyReachedStates, helper);
+      if(!TransitionMonitor.isRuning()){
+          return alreadyReachedStates;
+      }
     }
     SearchProfiler.stopTransitionProfiler(alreadyReachedStates.getDepth());
     return alreadyReachedStates;

@@ -27,6 +27,7 @@ public class Transition {
   private boolean isOk;
   private boolean isError;
   private List<Variable> modified;
+  private boolean isConstructor;
 
   public Transition() {
     guard = null;
@@ -42,8 +43,7 @@ public class Transition {
   public Transition(Expression guard, Map<Variable, Expression<Boolean>> effects) {
     this();
     this.guard = guard;
-    this.effects = effects;
-    stateVariables = new ArrayList(effects.keySet());
+    setEffects(effects);
     calculateModified();
   }
 
@@ -58,40 +58,42 @@ public class Transition {
     this.isOk = ok;
   }
 
-  public Transition(Expression guard, String errorMsg, String stackTrace, boolean ok, boolean error) {
-    this();
-    this.guard = guard;
-    this.errorMessage = errorMsg;
-    this.stackTrace = stackTrace;
-    this.isError = error;
-    this.isOk = ok;
-  }
-
-  public Transition(Expression guard, String errorMsg, String stackTrace, Map<Variable, Expression<Boolean>> effects, boolean ok, boolean error) {
-    this();
-    this.guard = guard;
-    this.errorMessage = errorMsg;
-    this.stackTrace = stackTrace;
-    this.effects = effects;
-    this.isError = error;
-    this.isOk = ok;
-  }
-
-  public Transition(Expression guard, String errorMsg, String stackTrace, String id, boolean ok, boolean error) {
-    this();
-    this.guard = guard;
-    this.errorMessage = errorMsg;
-    this.stackTrace = stackTrace;
+  public Transition(Expression guard, Map<Variable, Expression<Boolean>> effects, String id, boolean ok, boolean error, boolean constructor) {
+    this(guard, effects, ok, error);
+    this.isConstructor = constructor;
     this.id = id;
-    this.isError = error;
-    this.isOk = ok;
+  }
+
+  public Transition(Expression guard, String errorMsg, String stackTrace, boolean ok, boolean error) {
+    this(guard, null, ok, error);
+    this.errorMessage = errorMsg;
+    this.stackTrace = stackTrace;
+  }
+
+  public Transition(Expression guard, String errorMsg, String stackTrace, String id, boolean ok, boolean error, boolean constructor) {
+    this(guard,errorMsg, stackTrace, ok, error);
+    this.isConstructor = constructor;
+    this.id = id;
+  }
+  
+  public Transition(Expression guard, String errorMsg, String stackTrace, Map<Variable, Expression<Boolean>> effects, boolean ok, boolean error) {
+    this(guard, errorMsg, stackTrace, ok, error);
+    setEffects(effects);
+  }
+  
+  public Transition(Expression guard, String errorMsg, String stackTrace, Map<Variable, Expression<Boolean>> effects, boolean ok, boolean error, boolean constructor) {
+    this(guard, errorMsg, stackTrace, effects, ok, error);
+    this.isConstructor = constructor;
+  }
+  
+  public Transition(Expression guard, String errorMsg, String stackTrace, String id, boolean ok, boolean error) {
+    this(guard, errorMsg, stackTrace, ok, error);
+    this.id = id;
   }
 
   public Transition(Expression guard, Map<Variable, Expression<Boolean>> effects, String id, boolean ok, boolean error) {
-    this(guard, effects);
+    this(guard, effects, ok, error);
     this.id = id;
-    this.isError = error;
-    this.isOk = ok;
   }
 
   public Expression getGuard() {
@@ -119,11 +121,7 @@ public class Transition {
       this.effects = effects;
       stateVariables = new ArrayList(this.effects.keySet());
       transition = null;
-    } else {
-      String msg = "You are not allowed to pass null."
-              + "Pass emtpy map instead, if you want to reset effects.";
-      throw new IllegalStateException(msg);
-    }
+    } 
   }
 
   public boolean isReached() {
@@ -185,28 +183,25 @@ public class Transition {
     return this.stateVariables;
   }
   public SearchIterationImage applyOn(SearchIterationImage currentState, TransitionHelper helper) {
-    if (isOk()) {
-      return helper.applyTransition(currentState, this);
-    } else if (isError()) {
-      return helper.applyError(currentState, this);
-    } else {
-      String msg = "This transition is neither ok nor erroneous. Cannot apply!";
-      throw new IllegalStateException(msg);
-    }
+    return helper.applyTransition(currentState, this);
   }
 
   @Override
   public String toString() {
-    if (isOk()) {
-      return toStringOk();
-    } else if (isError()) {
+    if (isError()) {
       return toStringError();
+    }else if (isOk()) {
+      return toStringOk();
     } else {
       String msg = "This Transition is neither ok nor erroneous.";
       throw new RuntimeException(msg);
     }
   }
 
+  public String toStringWithId(){
+      return "ID: " + id + " " + toString();
+  }
+  
   private String toStringOk() {
     StringBuilder builder = new StringBuilder();
     builder.append("[OK]: ");
@@ -292,6 +287,12 @@ public class Transition {
     }
   }
 
+  public void setIsConstructor(boolean value){
+      this.isConstructor = value;
+  }
+  public boolean isConstructor(){
+      return this.isConstructor;
+  }
   private String convertErrorTransitiontForFile(HashMap<Class, String> data) {
     String errorTransitionForFile = TransitionEncoding.error + ":";
     errorTransitionForFile += (errorMessage == null?"":errorMessage);

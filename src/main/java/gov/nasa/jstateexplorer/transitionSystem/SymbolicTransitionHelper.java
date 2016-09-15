@@ -52,7 +52,7 @@ public class SymbolicTransitionHelper extends TransitionHelper {
   }
 
   @Override
-  public SearchIterationImage applyTransition(SearchIterationImage image, Transition transition) {
+  public SearchIterationImage applyOkTransition(SearchIterationImage image, Transition transition) {
     if (image instanceof SymbolicImage) {
       SymbolicRegion newRegion = new SymbolicRegion();
       SymbolicImage currentState = (SymbolicImage) image;
@@ -86,6 +86,8 @@ public class SymbolicTransitionHelper extends TransitionHelper {
       resultingState.add(primeEntry);
     }
     transition.setReached(true);
+    resultingState.copyHistory(state.getHistory());
+    resultingState.addToHistory(transition);
     return resultingState;
   }
 

@@ -16,7 +16,10 @@
 package gov.nasa.jstateexplorer.datastructures.searchImage;
 
 import gov.nasa.jstateexplorer.datastructures.region.Region;
+import gov.nasa.jstateexplorer.transitionSystem.Transition;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,7 +33,8 @@ public abstract class SearchIterationImage<T extends Region> {
   protected int depth = 0;
   protected StringBuilder errors = new StringBuilder();
   protected T reachableStates, newStates, previousNewStates;
-
+  protected List<T> historyForCE;
+  
   public SearchIterationImage(T reachableStates) {
     this.reachableStates = reachableStates;
   }
@@ -47,6 +51,14 @@ public abstract class SearchIterationImage<T extends Region> {
 
   public void setDepth(int depth) {
     this.depth = depth;
+  }
+
+  public List<T> getHistoryForCE() {
+    return historyForCE;
+  }
+
+  public void setHistoryForCE(List<T> historyForCE) {
+    this.historyForCE = historyForCE;
   }
 
   public void increaseDepth(int amount) {

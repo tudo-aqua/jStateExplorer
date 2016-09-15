@@ -18,7 +18,10 @@ package gov.nasa.jstateexplorer.datastructures.state;
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.ValuationEntry;
 import gov.nasa.jpf.constraints.api.Variable;
+import gov.nasa.jstateexplorer.transitionSystem.Transition;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -26,6 +29,8 @@ import java.util.Set;
  * @param <T> Any class extending ValuationEntry.
  */
 public abstract class State<T extends ValuationEntry> extends HashSet<T> {
+
+  protected List<Transition> history = new ArrayList<>();
 
   public Set<T> getEntriesForVariable(Variable var) {
     Set<T> entriesForVariable = new HashSet<>();
@@ -40,4 +45,29 @@ public abstract class State<T extends ValuationEntry> extends HashSet<T> {
   public abstract Expression<Boolean> toExpression();
 
   public abstract State<T> createEmptyState();
+  
+  public void addToHistory(Transition t){
+      this.history.add(t);
+  }
+
+  public void copyHistory(List<Transition> history){
+    for(Transition t: history){
+      this.history.add(t);
+    }
+  }
+  public void setHistory(List<Transition> history){
+    if(history != null){
+      this.history = history;
+    }
+  }
+  public List<Transition> getHistory(){
+    return this.history;
+  }
+  public String getHistoryAsString(){
+      String resHistorie = "size: " + this.history.size() +"\n";
+      for(Transition t: this.history){
+          resHistorie += t.toStringWithId();
+      }
+      return resHistorie;
+  }
 }

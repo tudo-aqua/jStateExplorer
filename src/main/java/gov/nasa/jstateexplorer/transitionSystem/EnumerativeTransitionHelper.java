@@ -31,7 +31,7 @@ import java.util.Set;
 public class EnumerativeTransitionHelper extends TransitionHelper {
 
   @Override
-  public SearchIterationImage applyTransition(SearchIterationImage image, Transition transition) {
+  public SearchIterationImage applyOkTransition(SearchIterationImage image, Transition transition) {
     if (image instanceof EnumerativeImage) {
       EnumerativeImage currentSearchStatus = (EnumerativeImage) image;
       int depth = currentSearchStatus.getDepth();
