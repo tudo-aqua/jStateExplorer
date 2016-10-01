@@ -23,6 +23,9 @@ import gov.nasa.jstateexplorer.datastructures.region.Region;
 import gov.nasa.jstateexplorer.datastructures.searchImage.SearchIterationImage;
 import gov.nasa.jstateexplorer.datastructures.state.State;
 import gov.nasa.jstateexplorer.util.HelperMethods;
+import gov.nasa.jstateexplorer.util.SearchProfiler;
+import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -68,8 +71,14 @@ public abstract class TransitionHelper {
   protected boolean satisfiesGuardCondition(State state,
           Transition transition, int depth) throws IllegalStateException {
     Expression guardTest = state.toExpression();
-    guardTest = ExpressionUtil.and(guardTest, transition.getGuard());
+    if(guardTest != null){
+      guardTest = ExpressionUtil.and(guardTest, transition.getGuard());
+    }else{
+      guardTest = transition.getGuard();
+    }
+    SearchProfiler.startGuardProfiler(depth);
     Result res = solver.isSatisfiable(guardTest);
+    SearchProfiler.stopGuardProfiler(depth);
     if (null != res) {
       switch (res) {
         case SAT:
