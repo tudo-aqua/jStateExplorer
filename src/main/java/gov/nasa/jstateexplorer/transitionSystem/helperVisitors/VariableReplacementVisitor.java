@@ -18,6 +18,7 @@ package gov.nasa.jstateexplorer.transitionSystem.helperVisitors;
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.expressions.AbstractExpressionVisitor;
+import gov.nasa.jpf.constraints.expressions.CastExpression;
 import gov.nasa.jpf.constraints.expressions.Negation;
 import gov.nasa.jpf.constraints.expressions.NumericBooleanExpression;
 import gov.nasa.jpf.constraints.expressions.NumericCompound;
@@ -69,6 +70,14 @@ public class VariableReplacementVisitor
   }
 
   @Override
+  public <F,E> 
+        Expression visit(CastExpression<F,E> expr, VariableReplacementMap data) {
+    Expression innerValue = expr.getCasted();
+    innerValue = check(innerValue, data);
+    return new CastExpression(innerValue, expr.getType(), expr.getCastOp());
+  }
+
+  @Override
   public Expression visit(Variable expr, VariableReplacementMap data) {
     return data.getOrDefault(expr, expr);
   }
@@ -92,6 +101,8 @@ public class VariableReplacementVisitor
       return visit((PropositionalCompound) expr, data);
     } else if (expr instanceof NumericBooleanExpression) {
       return visit((NumericBooleanExpression) expr, data);
+    } else if(expr instanceof CastExpression){
+      return visit(expr, data);
     } else if (expr instanceof Negation) {
       return visit((Negation) expr, data);
     }

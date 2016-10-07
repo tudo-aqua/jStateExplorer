@@ -78,7 +78,7 @@ public abstract class RegionUtil<V extends State<?>, T extends Region<?, V>> {
       toExclude.add(state);
     }
     logger.finer("gov.nasa.jpf.psyco.search.region."
-            + "util.SymbolicRegionUtil.difference()");
+            + "util.RegionUtil.difference()");
     for (String key : outterRegion.keySet()) {
       Expression excludedRegionExpr = convertSetToExpression(toExclude);
       Set<Variable<?>> stateVariables = convertToVariableSet(excludedRegion);

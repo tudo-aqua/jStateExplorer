@@ -8,10 +8,13 @@ import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import gov.nasa.jstateexplorer.datastructures.searchImage.SearchIterationImage;
 import gov.nasa.jstateexplorer.transitionSystem.helperVisitors.ExpressionConverterVisitor;
 import gov.nasa.jstateexplorer.transitionSystem.helperVisitors.TransitionEncoding;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Transition {
@@ -182,6 +185,17 @@ public class Transition {
   public List<Variable> getStateVariables(){
     return this.stateVariables;
   }
+//
+//  public List<Variable> getNonSateVariables(){
+//    List<Variable> nonStateVariabels = new ArrayList<Variable>();
+//    Set<Variable<?>> allVariables = ExpressionUtil.freeVariables(this.convertToExpression());
+//    for(Variable var: allVariables){
+//      if(! stateVariables.contains(var)){
+//        nonStateVariabels.add(var);
+//      }
+//    }
+//    return nonStateVariabels;
+//  }
   public SearchIterationImage applyOn(SearchIterationImage currentState, TransitionHelper helper) {
     return helper.applyTransition(currentState, this);
   }
@@ -271,6 +285,13 @@ public class Transition {
   public String convertForFile(HashMap<Class, String> data){
     ExpressionConverterVisitor expressionConverter = 
             new ExpressionConverterVisitor();
+    StringBuilder a = new StringBuilder();
+    try {
+      guard.printMalformedExpression(a);
+    } catch (IOException ex) {
+      Logger.getLogger(Transition.class.getName()).log(Level.SEVERE, null, ex);
+    }
+    logger.info(a.toString());
     String guardForFile = 
             (String) guard.accept(expressionConverter, data);
     String effectsForFile;

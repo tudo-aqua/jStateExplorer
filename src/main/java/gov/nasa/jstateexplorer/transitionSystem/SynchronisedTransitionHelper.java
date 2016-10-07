@@ -32,11 +32,11 @@ public class SynchronisedTransitionHelper extends SymbolicTransitionHelper {
             State state = (State) it.next();
             if(super.satisfiesGuardCondition(state, transition, image.getDepth())){
               TransitionMonitor.stopRuning();
-              logger.finer("gov.nasa.jstateexplorer.transitionSystem.SynchronisedTransitionHelper.applyTransition() -History");
-              logger.finer(transition.toStringWithId());
-              logger.finer("State: " + state.toExpression().toString());
-              logger.finer("History: " + state.getHistoryAsString());
+              logger.info("gov.nasa.jstateexplorer.transitionSystem.SynchronisedTransitionHelper.applyTransition() -History");
+              logger.info(transition.toStringWithId());
+              logger.info("State: " + state.toExpression().toString());
               state.addToHistory(transition);
+              logger.info("History: " + state.getHistoryAsString());
               image.setHistoryForCE(state.getHistory());
               return image;
             }

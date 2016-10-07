@@ -54,6 +54,8 @@ public class EnumerativeSearchEngine {
           ConstraintSolver solver,
           int maxSearchDepth) {
     SolverInstance.getInstance().setSolver(solver);
+    System.out.println("gov.nasa.jstateexplorer.EnumerativeSearchEngine.enumerativBreadthFirstSearch()");
+    System.out.println(transitionSystem.getInitValuation().toString());
     EnumerativeRegion newRegion, reachableRegion
             = new EnumerativeRegion(transitionSystem.getInitValuation());
     EnumerativeRegionUtil regionUtil = new EnumerativeRegionUtil(solver);
@@ -67,6 +69,13 @@ public class EnumerativeSearchEngine {
     while (!currentSearchState.getPreviousNewStates().isEmpty()) {
       EnumerativeImage newImage = searchUtil.post(currentSearchState,
               transitionSystem);
+      StringBuilder a = new StringBuilder();
+      try {
+        newImage.print(a);
+      } catch (IOException ex) {
+        Logger.getLogger(EnumerativeSearchEngine.class.getName()).log(Level.SEVERE, null, ex);
+      }
+      logger.info("new Image: " + a);
       EnumerativeRegion nextReachableStates = newImage.getNewStates();
 
       SearchProfiler.startDiffProfiler(newImage.getDepth());
@@ -74,6 +83,14 @@ public class EnumerativeSearchEngine {
               reachableRegion);
       SearchProfiler.stopDiffProfieler(newImage.getDepth());
 
+      a = new StringBuilder();
+      try {
+        newRegion.print(a);
+      } catch (IOException ex) {
+        Logger.getLogger(EnumerativeSearchEngine.class.getName()).log(Level.SEVERE, null, ex);
+      }
+      logger.info("new Region: " + a);
+      
       reachableRegion = regionUtil.union(reachableRegion, newRegion);
       newImage.setReachableStates(reachableRegion);
       newImage.setReachableStates(reachableRegion);

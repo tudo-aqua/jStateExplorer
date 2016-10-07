@@ -96,8 +96,8 @@ public class SearchEngine {
   private int executeEnumerativeSearch(TransitionSystem system,
           ConstraintSolver solver) {
     logger.info("Start enumerative search");
-    Valuation initValuation = fix_init_valuation(system.getInitValuation());
-    system.setInitValuation(initValuation);
+    System.out.println("gov.nasa.jstateexplorer.SearchEngine.executeEnumerativeSearch()");
+    System.out.println("initValuation: " + system.getInitValuation());
     TransitionHelper helper = new EnumerativeTransitionHelper();
     system.setHelper(helper);
     logger.info(system.toString());
@@ -137,8 +137,6 @@ public class SearchEngine {
   private int executeSymbolicSearch(TransitionSystem system,
           ConstraintSolver solver) {
     logger.info("Start symbolic search");
-    Valuation initValuation = fix_init_valuation(system.getInitValuation());
-    system.setInitValuation(initValuation);
     TransitionHelper helper = new SymbolicTransitionHelper();
     SolverInstance.getInstance().setSolver(solver);
     system.setHelper(helper);
@@ -179,20 +177,6 @@ public class SearchEngine {
     return searchResult.getDepth();
   }
 
-  /**
-   * Fix me! The jDart transition system includes method parameter to the 
-   * inital state right know. This should not happen.
-   * This works as a work around, but may be improved.
-   */
-  private Valuation fix_init_valuation(Valuation initialValuation) {
-    Valuation result = new Valuation();
-    for (ValuationEntry entry : initialValuation) {
-      if (entry.getVariable().getName().startsWith("this")) {
-        result.addEntry(entry);
-      }
-    }
-    return result;
-  }
 
   private void updateFolderName(SearchConfig pconf) {
     folderName = pconf.getResultFolder();

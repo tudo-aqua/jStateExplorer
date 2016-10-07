@@ -19,6 +19,7 @@ import gov.nasa.jpf.constraints.api.ConstraintSolver.Result;
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.api.ValuationEntry;
+import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import gov.nasa.jstateexplorer.datastructures.region.EnumerativeRegion;
 import gov.nasa.jstateexplorer.datastructures.searchImage.EnumerativeImage;
@@ -38,6 +39,8 @@ public class EnumerativeTransitionHelper extends TransitionHelper {
       EnumerativeRegion newRegion = new EnumerativeRegion();
       for (EnumerativeState state
               : currentSearchStatus.getPreviousNewStates().values()) {
+        System.out.println("gov.nasa.jstateexplorer.transitionSystem.EnumerativeTransitionHelper.applyOkTransition()");
+        System.out.println("state: " + state.getHistoryAsString());
         if (satisfiesGuardCondition(state, transition, depth)) {
           transition.setReached(true);
           EnumerativeState newState = executeTransition(transition, state);
@@ -53,20 +56,25 @@ public class EnumerativeTransitionHelper extends TransitionHelper {
   private EnumerativeState executeTransition(Transition transition,
           EnumerativeState state) {
     Expression resultingExpression = state.toExpression();
+    Set primeVariablesForStateVars = createFilterVariabel(resultingExpression);
     Expression transitionEffects
             = transition.convertToExpression();
     resultingExpression
             = ExpressionUtil.and(resultingExpression, transitionEffects);
-    logger.finest("gov.nasa.jpf.psyco.search.transitionSystem."
+    logger.info("gov.nasa.jpf.psyco.search.transitionSystem."
             + "EnumerativeTransitionHelper.executeTransition()");
-    logger.finest(resultingExpression.toString());
-    Set oldVariables = new HashSet(transition.getStateVariables());
+    logger.info(resultingExpression.toString());
+
+    System.out.println("gov.nasa.jstateexplorer.transitionSystem.EnumerativeTransitionHelper.executeTransition()");
+    System.out.println(primeVariablesForStateVars);
     Valuation result = new Valuation();
     Result res = solver.solve(resultingExpression, result);
     logger.finest("Valuation: " + result.toString());
     Valuation filtered = new Valuation();
     for (ValuationEntry entry : result) {
-      if (!oldVariables.contains(entry.getVariable())) {
+      if (primeVariablesForStateVars.contains(entry.getVariable())) {
+      System.out.println("gov.nasa.jstateexplorer.transitionSystem.EnumerativeTransitionHelper.executeTransition()");
+      System.out.println("Var: " + entry.getVariable() + " Value: " + entry.getValue());
         filtered.addEntry(entry);
       }
     }
@@ -75,5 +83,17 @@ public class EnumerativeTransitionHelper extends TransitionHelper {
     } else {
       throw new IllegalStateException("Solver could not SAT state result.");
     }
+  }
+
+  private Set createFilterVariabel(Expression resultingExpression) {
+    Set<Variable<?>> oldVariables = ExpressionUtil.freeVariables(resultingExpression);
+    Set<Variable<?>> filterVariable = new HashSet();
+    for (Variable var: oldVariables){
+      String currentName = var.getName();
+      String newName = currentName + "'";
+      Variable filter = new Variable(var.getType(), newName);
+      filterVariable.add(filter);
+    }
+    return filterVariable;
   }
 }

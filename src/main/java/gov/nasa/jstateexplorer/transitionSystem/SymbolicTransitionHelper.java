@@ -15,7 +15,9 @@
  */
 package gov.nasa.jstateexplorer.transitionSystem;
 
+import gov.nasa.jpf.constraints.api.ConstraintSolver.Result;
 import gov.nasa.jpf.constraints.api.Expression;
+import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.expressions.Constant;
 import gov.nasa.jpf.constraints.expressions.NumericBooleanExpression;
@@ -113,11 +115,13 @@ public class SymbolicTransitionHelper extends TransitionHelper {
     Variable oldVariable = entry.getVariable(),
             primeVariable = createPrimeVariable(oldVariable);
     Expression transitionEffekt = transition.getEffect(oldVariable);
-    Expression newValue
+    Expression newValue = null;
+    if(isTainted(transitionEffekt, prefix)){
+      newValue
             = prefix != null
                 ? (Expression) prefix.accept(replacementVisitor, replacements)
                 : prefix;
-
+    }
     List<NumericBooleanExpression> oldRestrictionsToKeep = new ArrayList<>();
     Set<Variable<?>> possibleBound = 
             ExpressionUtil.freeVariables(entry.getValue());
@@ -128,7 +132,8 @@ public class SymbolicTransitionHelper extends TransitionHelper {
         if ((!(var.getName().startsWith("uVarReplacement")))
                 && (!variables.contains(entry.getVariable()))
                 && possibleBound.contains(var)) {
-          newValue = ExpressionUtil.and(newValue, expr);
+          newValue = (newValue != null) ? 
+                  ExpressionUtil.and(newValue, expr): expr;
           break;
         }
       }
@@ -183,7 +188,7 @@ public class SymbolicTransitionHelper extends TransitionHelper {
             transitionEffekt.accept(replacementVisitor, replacements);
     Expression newValuePart = NumericBooleanExpression.create(primeVariable,
             NumericComparator.EQ, transitionEffekt);
-    return appendNewValue(prefix, newValuePart);
+    return simplifyNewValue(appendNewValue(prefix, newValuePart), primeVariable);
   }
 
   private Expression extractValueForReplacement(Variable oldVariable,
@@ -210,5 +215,30 @@ public class SymbolicTransitionHelper extends TransitionHelper {
   private Variable createPrimeVariable(Variable var) {
     String newName = var.getName() + "'";
     return Variable.create(var.getType(), newName);
+  }
+
+  private boolean isTainted(Expression transitionEffekt, Expression guard) {
+    if(guard == null){
+      return false;
+    }
+    Set<Variable<?>> effectVariables = ExpressionUtil.freeVariables(transitionEffekt);
+    Set<Variable<?>> guardVariables = ExpressionUtil.freeVariables(guard);
+    for(Variable effectVar: effectVariables){
+      if(guardVariables.contains(effectVar)){
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private Expression simplifyNewValue(Expression appendNewValue , Variable prime) {
+//    Valuation res = new Valuation();
+//    Result ret = solver.solve(appendNewValue, res);
+//    if(ret == Result.SAT){
+//      Object newValue = res.getValue(prime);
+//      Expression constant = new Constant(prime.getType(), newValue);
+//      return NumericBooleanExpression.create(prime, NumericComparator.EQ, constant);
+//    }
+    return appendNewValue;
   }
 }

@@ -21,11 +21,13 @@ import gov.nasa.jstateexplorer.datastructures.region.Region;
 import gov.nasa.jstateexplorer.datastructures.searchImage.SearchIterationImage;
 import gov.nasa.jstateexplorer.transitionSystem.TransitionSystem;
 import gov.nasa.jstateexplorer.util.region.RegionUtil;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class SearchUtil<T extends SearchIterationImage> {
@@ -54,15 +56,16 @@ public class SearchUtil<T extends SearchIterationImage> {
                     transitionSystem);
     SearchProfiler.newStates(iterationResult.getDepth(),
             iterationResult.getNewStates().size());
-    Region existingRegion =
-            util.exists(iterationResult.getNewStates(),
-                    variablesInPreviousState);
-    SearchProfiler.startRenamingProfiler(currentSearchState.getDepth());
+//    Region existingRegion =
+//            util.exists(iterationResult.getNewStates(),
+//                    variablesInPreviousState);
 
+    SearchProfiler.startRenamingProfiler(currentSearchState.getDepth());
     Region renamedRegion =
-            rename(existingRegion, variablesInPreviousState);
+            rename(iterationResult.getNewStates(), variablesInPreviousState);
     SearchProfiler.stopRenamingProfiler(currentSearchState.getDepth());
     iterationResult.setNewStates(renamedRegion);
+    
     return iterationResult;
   }
 
@@ -75,8 +78,6 @@ public class SearchUtil<T extends SearchIterationImage> {
 
   private Region rename(Region existingRegion,
           Set<Variable<?>> variablesInPreviousState) {
-    List<Variable<?>> primeNames = new ArrayList<>();
-    List<Variable<?>> variableNames = new ArrayList<>();
     Map<Variable, Variable> renamings = new HashMap<>();
     for (Variable var : variablesInPreviousState) {
       String primeName = var.getName() + "'";
