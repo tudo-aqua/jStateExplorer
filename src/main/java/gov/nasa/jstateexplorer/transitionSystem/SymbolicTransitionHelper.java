@@ -232,13 +232,24 @@ public class SymbolicTransitionHelper extends TransitionHelper {
   }
 
   private Expression simplifyNewValue(Expression appendNewValue , Variable prime) {
-//    Valuation res = new Valuation();
-//    Result ret = solver.solve(appendNewValue, res);
-//    if(ret == Result.SAT){
-//      Object newValue = res.getValue(prime);
-//      Expression constant = new Constant(prime.getType(), newValue);
-//      return NumericBooleanExpression.create(prime, NumericComparator.EQ, constant);
-//    }
+    Valuation res = new Valuation();
+    Result ret = solver.solve(appendNewValue, res);
+    if(simplifiableValue(appendNewValue, prime.getName()) && ret == Result.SAT){
+      Object newValue = res.getValue(prime);
+      Expression constant = new Constant(prime.getType(), newValue);
+      return NumericBooleanExpression.create(prime, NumericComparator.EQ, constant);
+    }
     return appendNewValue;
+  }
+
+  //FiXME: Is this condition enough?
+  private boolean simplifiableValue(Expression newValue, String primeName){
+    Set<Variable<?>> variablesInExpression = ExpressionUtil.freeVariables(newValue);
+    for(Variable candidate: variablesInExpression){
+      if(!primeName.startsWith(candidate.getName())){
+        return false;
+      }
+    }
+    return true;
   }
 }

@@ -251,19 +251,19 @@ public class TransitionSystem<T extends TransitionHelper> {
   }
 
   public void writeToFile(String fileName) {
-//    try (PrintWriter writer = new PrintWriter(fileName);) {
-//      ExpressionConverterVisitor visitor = new ExpressionConverterVisitor();
-//      HashMap<Class, String> data = exctractDataTypes();
-//      String initState = convert(initValuation, data);
-//      writer.println(initState);
-//      for (Transition t : transitions) {
-//        String transformedTransition = t.convertForFile(data);
-//        writer.println(transformedTransition);
-//      }
-//    } catch (FileNotFoundException ex) {
-//      logger.severe(ex.toString());
-//
-//    }
+    try (PrintWriter writer = new PrintWriter(fileName);) {
+      ExpressionConverterVisitor visitor = new ExpressionConverterVisitor();
+      HashMap<Class, String> data = exctractDataTypes();
+      String initState = convert(initValuation, data);
+      writer.println(initState);
+      for (Transition t : transitions) {
+        String transformedTransition = t.convertForFile(data);
+        writer.println(transformedTransition);
+      }
+    } catch (FileNotFoundException ex) {
+      logger.severe(ex.toString());
+
+    }
   }
 
   private HashMap<Class, String> exctractDataTypes() {

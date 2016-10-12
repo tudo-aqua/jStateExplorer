@@ -63,8 +63,6 @@ public class EnumerativeSearchEngine {
             = new SearchUtil<>(regionUtil, logger);
     EnumerativeImage currentSearchState
             = new EnumerativeImage(reachableRegion);
-    currentSearchState.setPreviousNewStates(reachableRegion);
-    //If newRegion is empty, it was not possible to reach a new state by 
     //the last iteration. A fix point is reached. This is the termiantion goal.
     while (!currentSearchState.getPreviousNewStates().isEmpty()) {
       EnumerativeImage newImage = searchUtil.post(currentSearchState,

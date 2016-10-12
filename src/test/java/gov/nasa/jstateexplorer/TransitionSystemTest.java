@@ -22,23 +22,27 @@ import gov.nasa.jstateexplorer.transitionSystem.TransitionHelper;
 import gov.nasa.jstateexplorer.transitionSystem.TransitionSystem;
 import gov.nasa.jstateexplorer.transitionSystem.TransitionSystemLoader;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import org.junit.Before;
-import org.junit.Test;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
 
+@Test
 public class TransitionSystemTest {
   
   public TransitionSystemTest() {
   }
   ConstraintSolver solver;
-  @Before
+  @BeforeTest
   public void setUp() {
     Properties conf = new Properties();
     conf.setProperty("symbolic.dp", "Z3");

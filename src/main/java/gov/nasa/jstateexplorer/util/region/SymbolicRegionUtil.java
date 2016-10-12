@@ -40,20 +40,22 @@ public class SymbolicRegionUtil
     SymbolicRegion resultingRegion = region.createNewRegion();
     for (String key : region.keySet()) {
       SymbolicState state = region.get(key);
-      SymbolicState renamedState =
-              renameState(state, renamings);
-      resultingRegion.put(key, renamedState);
+      if(!state.isEmpty()){
+          SymbolicState renamedState =
+                  renameState(state, renamings);
+          resultingRegion.put(key, renamedState);
+      }
     }
     return resultingRegion;
   }
 
   private SymbolicState renameState(SymbolicState state,
           Map<Variable, Variable> renamings) {
-    logger.finest("gov.nasa.jpf.psyco.search.region.util."
+    logger.info("gov.nasa.jpf.psyco.search.region.util."
             + "SymbolicRegionUtil.renameState()");
-    logger.finest("stateToRename: ");
+    logger.info("stateToRename: ");
     for (SymbolicEntry entry : state) {
-      logger.finest("Var: " + entry.getVariable() + " : " + entry.getValue());
+      logger.info("Var: " + entry.getVariable() + " : " + entry.getValue());
     }
     Set<Variable<?>> variablesInTheState
             = ExpressionUtil.freeVariables(state.toExpression());

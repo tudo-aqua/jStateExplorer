@@ -72,7 +72,6 @@ public class SymbolicSearchEngine {
     //We start to count interation based on 1. 0 is skipped.
     SymbolicImage currentSearchState
             = new SymbolicImage(reachableRegion);
-    currentSearchState.setPreviousNewStates(reachableRegion);
     while (!currentSearchState.getPreviousNewStates().isEmpty()) {
       SymbolicImage newImage = searchUtil.post(currentSearchState,
               transitionSystem);

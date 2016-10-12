@@ -37,10 +37,12 @@ public abstract class SearchIterationImage<T extends Region> {
   
   public SearchIterationImage(T reachableStates) {
     this.reachableStates = reachableStates;
+    newStates = (T) reachableStates.createNewRegion();
+    previousNewStates = reachableStates;
   }
 
   public SearchIterationImage(T reachableStates, StringBuilder errors, int depth) {
-    this.reachableStates = reachableStates;
+    this(reachableStates);
     this.errors = errors;
     this.depth = depth;
   }
