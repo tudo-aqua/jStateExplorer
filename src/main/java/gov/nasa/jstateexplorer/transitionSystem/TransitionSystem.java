@@ -200,6 +200,7 @@ public class TransitionSystem<T extends TransitionHelper> {
               + " the system, before you can use it.");
     }
     alreadyReachedStates.increaseDepth(1);
+    logger.info("enroll Depth: "+ alreadyReachedStates.getDepth());
     SearchProfiler.startTransitionProfiler(alreadyReachedStates.getDepth());
     for (Transition t : transitions) {
       alreadyReachedStates = t.applyOn(alreadyReachedStates, helper);

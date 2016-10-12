@@ -22,6 +22,7 @@ import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.expressions.BitvectorExpression;
 import gov.nasa.jpf.constraints.expressions.BitvectorNegation;
 import gov.nasa.jpf.constraints.expressions.BitvectorOperator;
+import gov.nasa.jpf.constraints.expressions.CastExpression;
 import gov.nasa.jpf.constraints.expressions.Constant;
 import gov.nasa.jpf.constraints.expressions.LogicalOperator;
 import gov.nasa.jpf.constraints.expressions.Negation;
@@ -32,6 +33,7 @@ import gov.nasa.jpf.constraints.expressions.NumericOperator;
 import gov.nasa.jpf.constraints.expressions.PropositionalCompound;
 import gov.nasa.jpf.constraints.expressions.UnaryMinus;
 import gov.nasa.jpf.constraints.types.BuiltinTypes;
+import gov.nasa.jpf.constraints.types.ConcreteType;
 import gov.nasa.jstateexplorer.transitionSystem.helperVisitors.TransitionEncoding;
 import gov.nasa.jstateexplorer.util.HelperMethods;
 import java.io.BufferedReader;
@@ -190,13 +192,7 @@ public class TransitionSystemLoader {
     endValue = currentLine.indexOf(';');
     String type = currentLine.substring(0, endValue);
     currentLine = currentLine.substring(endValue + 1);
-    if (type.endsWith("BuiltinTypes$SInt32Type")) {
-      return new Constant(BuiltinTypes.SINT32, Integer.parseInt(value));
-    } else if (type.endsWith("BuiltinTypes$BoolType")) {
-      return new Constant(BuiltinTypes.BOOL, Boolean.parseBoolean(value));
-    } else {
-      throw new IllegalStateException("This Type is currently not supported");
-    }
+    return Constant.create(resolveType(type), value);
   }
 
   private Negation parseNegation() {
@@ -291,16 +287,9 @@ public class TransitionSystemLoader {
     String name = currentLine.substring(0, endName);
     currentLine = currentLine.substring(endName);
     endName = currentLine.indexOf(';');
-    String type = currentLine.substring(0, endName);
+    String type = currentLine.substring(1, endName);
     currentLine = currentLine.substring(endName + 1);
-    if (type.endsWith("BuiltinTypes$SInt32Type")) {
-      return Variable.create(BuiltinTypes.SINT32, name);
-    } else if (type.endsWith("BuiltinTypes$BoolType")) {
-      return Variable.create(BuiltinTypes.BOOL, name);
-    } else {
-      throw new IllegalStateException("This Type is currently not supported");
-    }
-
+    return Variable.create(resolveType(type), name);
   }
 
   private boolean nextTokenIs(char tokenType) {
@@ -308,6 +297,33 @@ public class TransitionSystemLoader {
     return currentLine.startsWith(prefix);
   }
 
+  private ConcreteType resolveType(String encodedType){
+    switch(encodedType){
+      case "gov.nasa.jpf.constraints.types.BuiltinTypes$SInt32Type":
+        return BuiltinTypes.SINT32;
+      case "gov.nasa.jpf.constraints.types.BuiltinTypes$SInt16Type":
+        return BuiltinTypes.SINT16;
+      case "gov.nasa.jpf.constraints.types.BuiltinTypes$SInt8Type":
+        return BuiltinTypes.SINT8;
+      case "gov.nasa.jpf.constraints.types.BuiltinTypes$SInt64Type":
+        return BuiltinTypes.SINT64;
+      case "gov.nasa.jpf.constraints.types.BuiltinTypes$BoolType":
+        return BuiltinTypes.BOOL;
+      case "gov.nasa.jpf.constraints.types.BuiltinTypes$DecimalType":
+        return BuiltinTypes.DECIMAL;
+      case "gov.nasa.jpf.constraints.types.BuiltinTypes$DoubleType":
+        return BuiltinTypes.DOUBLE;
+      case "gov.nasa.jpf.constraints.types.BuiltinTypes$FloatType":
+        return BuiltinTypes.FLOAT;
+      case "gov.nasa.jpf.constraints.types.BuiltinTypes$UInt16Type":
+        return BuiltinTypes.UINT16;
+      default:
+        System.err.println("gov.nasa.jstateexplorer.transitionSystem.TransitionSystemLoader.resolveType()");
+        System.err.println(encodedType);
+        System.err.flush();
+        throw new IllegalStateException("This Type is unknown: " + encodedType);
+    }
+  }
   private Expression parseNextExpression() {
     char nextExpressionType = currentLine.charAt(0);
     switch (nextExpressionType) {
@@ -329,11 +345,23 @@ public class TransitionSystemLoader {
         return parseUnaryMinus();
       case TransitionEncoding.variable:
         return parseVariable();
+      case TransitionEncoding.cast:
+        return parseCastExpression();
       default:
         System.err.println("gov.nasa.jpf.psyco.search.transitionSystem"
                 + ".TransitionSystemLoader.parseNextExpression()");
         System.err.println("line: " + currentLine);
         throw new IllegalStateException("Cannot parse next Expression.");
     }
+  }
+
+  private Expression parseCastExpression() {
+    currentLine = currentLine.substring(2);
+    Expression casted = parseNextExpression();
+    currentLine = currentLine.substring(1);
+    int index = currentLine.indexOf(";");
+    String type = currentLine.substring(0, index);
+    currentLine = currentLine.substring(index +1);
+    return CastExpression.create(casted, resolveType(type));
   }
 }

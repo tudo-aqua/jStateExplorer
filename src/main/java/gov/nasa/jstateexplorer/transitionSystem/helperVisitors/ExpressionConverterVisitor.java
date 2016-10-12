@@ -16,6 +16,7 @@
 package gov.nasa.jstateexplorer.transitionSystem.helperVisitors;
 
 import gov.nasa.jpf.constraints.api.Variable;
+import gov.nasa.jpf.constraints.casts.CastOperation;
 import gov.nasa.jpf.constraints.expressions.AbstractExpressionVisitor;
 import gov.nasa.jpf.constraints.expressions.BitvectorExpression;
 import gov.nasa.jpf.constraints.expressions.BitvectorNegation;
@@ -74,8 +75,9 @@ public class ExpressionConverterVisitor
   @Override
   public <F, E> String visit(CastExpression<F, E> cast,
           HashMap<Class, String> data) {
-    throw new IllegalStateException("Cast expression are not allowed so"
-            + "far in the transitionSystem.");
+    String inner = visit(cast.getCasted(), data);
+    String type = data.get(cast.getType().getClass());
+    return TransitionEncoding.cast + ":" + inner + ":" + type + ";";
   }
 
   @Override

@@ -41,4 +41,5 @@ public class TransitionEncoding {
   public static final char error = 'K';
   public static final char okTransition = 'J';
   public static final char errorTransition = 'M';
+  public static final char cast = 'R';
 }

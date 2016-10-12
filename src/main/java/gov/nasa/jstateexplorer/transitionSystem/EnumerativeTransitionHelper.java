@@ -73,8 +73,6 @@ public class EnumerativeTransitionHelper extends TransitionHelper {
     Valuation filtered = new Valuation();
     for (ValuationEntry entry : result) {
       if (primeVariablesForStateVars.contains(entry.getVariable())) {
-      System.out.println("gov.nasa.jstateexplorer.transitionSystem.EnumerativeTransitionHelper.executeTransition()");
-      System.out.println("Var: " + entry.getVariable() + " Value: " + entry.getValue());
         filtered.addEntry(entry);
       }
     }

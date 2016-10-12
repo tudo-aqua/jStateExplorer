@@ -285,13 +285,6 @@ public class Transition {
   public String convertForFile(HashMap<Class, String> data){
     ExpressionConverterVisitor expressionConverter = 
             new ExpressionConverterVisitor();
-    StringBuilder a = new StringBuilder();
-    try {
-      guard.printMalformedExpression(a);
-    } catch (IOException ex) {
-      Logger.getLogger(Transition.class.getName()).log(Level.SEVERE, null, ex);
-    }
-    logger.info(a.toString());
     String guardForFile = 
             (String) guard.accept(expressionConverter, data);
     String effectsForFile;
