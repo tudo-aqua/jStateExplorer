@@ -116,7 +116,7 @@ public class SymbolicTransitionHelper extends TransitionHelper {
             primeVariable = createPrimeVariable(oldVariable);
     Expression transitionEffekt = transition.getEffect(oldVariable);
     Expression newValue = null;
-    if(isTainted(transitionEffekt, prefix)){
+    if(isTainted(transitionEffekt, prefix, oldVariable)){
       newValue
             = prefix != null
                 ? (Expression) prefix.accept(replacementVisitor, replacements)
@@ -217,11 +217,17 @@ public class SymbolicTransitionHelper extends TransitionHelper {
     return Variable.create(var.getType(), newName);
   }
 
-  private boolean isTainted(Expression transitionEffekt, Expression guard) {
+  private boolean isTainted(Expression transitionEffekt, Expression guard, Variable oldVariable) {
     if(guard == null){
       return false;
     }
     Set<Variable<?>> effectVariables = ExpressionUtil.freeVariables(transitionEffekt);
+    effectVariables.remove(oldVariable);
+    if(effectVariables.isEmpty()){
+      return false;
+    }else{
+      effectVariables.add(oldVariable);
+    }
     Set<Variable<?>> guardVariables = ExpressionUtil.freeVariables(guard);
     for(Variable effectVar: effectVariables){
       if(guardVariables.contains(effectVar)){
@@ -245,11 +251,16 @@ public class SymbolicTransitionHelper extends TransitionHelper {
   //FiXME: Is this condition enough?
   private boolean simplifiableValue(Expression newValue, String primeName){
     Set<Variable<?>> variablesInExpression = ExpressionUtil.freeVariables(newValue);
+    //System.out.println("simplifiableValue");
+    //System.out.println("newValue" + newValue);
     for(Variable candidate: variablesInExpression){
+      //System.out.println("primeName: " + primeName + " candidate: " + candidate.getName());
       if(!primeName.startsWith(candidate.getName())){
+    //    System.out.println("false");
         return false;
       }
     }
+  //  System.out.println("true");
     return true;
   }
 }
