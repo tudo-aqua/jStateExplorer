@@ -51,11 +51,11 @@ public class SymbolicRegionUtil
 
   private SymbolicState renameState(SymbolicState state,
           Map<Variable, Variable> renamings) {
-    logger.info("gov.nasa.jpf.psyco.search.region.util."
+    logger.finest("gov.nasa.jpf.psyco.search.region.util."
             + "SymbolicRegionUtil.renameState()");
-    logger.info("stateToRename: ");
+    logger.finest("stateToRename: ");
     for (SymbolicEntry entry : state) {
-      logger.info("Var: " + entry.getVariable() + " : " + entry.getValue());
+      logger.finest("Var: " + entry.getVariable() + " : " + entry.getValue());
     }
     Set<Variable<?>> variablesInTheState
             = ExpressionUtil.freeVariables(state.toExpression());
