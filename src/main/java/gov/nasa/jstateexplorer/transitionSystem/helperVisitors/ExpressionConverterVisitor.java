@@ -45,6 +45,10 @@ public class ExpressionConverterVisitor
 
   @Override
   public <E> String visit(Variable<E> v, HashMap<Class, String> data) {
+    System.out.println("gov.nasa.jstateexplorer.transitionSystem.helperVisitors.ExpressionConverterVisitor.visit()");
+    System.out.println("Name " + v.getName());
+    System.out.println("Type " + v.getType());
+    System.out.println("DATA: " + data);
     String name = v.getName();
     String type = data.get(v.getType().getClass());
     return TransitionEncoding.variable + ":" + name + ":" + type + ";";
@@ -59,7 +63,8 @@ public class ExpressionConverterVisitor
 
   @Override
   public String visit(Negation n, HashMap<Class, String> data) {
-    return TransitionEncoding.negation + ":" + n.getNegated() + ";";
+    String negated = visit(n.getNegated(), data);
+    return TransitionEncoding.negation + ":" + negated + ";";
   }
 
   @Override
@@ -108,7 +113,7 @@ public class ExpressionConverterVisitor
 
   @Override
   public <E> String visit(UnaryMinus<E> n, HashMap<Class, String> data) {
-    String negated = visit(n.getNegated());
+    String negated = visit(n.getNegated(), data);
     return TransitionEncoding.unaryMinus + ":" + negated + ";";
   }
 
@@ -140,7 +145,7 @@ public class ExpressionConverterVisitor
   @Override
   public <E> String visit(
           BitvectorNegation<E> n, HashMap<Class, String> data) {
-    String negated = visit(n.getNegated());
+    String negated = visit(n.getNegated(), data);
     return TransitionEncoding.bitVectorNegation + ":" + negated + ";";
   }
 
