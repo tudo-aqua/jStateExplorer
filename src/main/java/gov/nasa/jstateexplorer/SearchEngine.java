@@ -88,8 +88,7 @@ public class SearchEngine {
     }else if(depthSymbolic != -1){
       return depthSymbolic;
     }else{
-      String msg = "Cannot determine Search result!";
-      throw new RuntimeException(msg);
+      return -1;
     }
   }
 
