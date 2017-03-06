@@ -17,7 +17,7 @@ public class TransitionSystem {
   }
 
   public List<Variable<?>> getStateVariables(){
-    return this.stateVariables;
+    return new ArrayList<>(this.stateVariables);
   }
 
   public void addVariable(Variable var){
@@ -38,7 +38,7 @@ public class TransitionSystem {
     }
   }
   public List<TransitionLabel> getTransitionLabels() {
-    return this.transitionLabels;
+    return new ArrayList<>(this.transitionLabels);
   }
 
   public boolean hasStateVariableWithName(String effectedVariableName) {
@@ -59,9 +59,9 @@ public class TransitionSystem {
     return null;
   }
 
-  public TransitionLabel getTransitionLabelByName(String h2) {
+  public TransitionLabel getTransitionLabelByName(String transitionName) {
     for(TransitionLabel label: this.transitionLabels){
-      if(label.getName().equalsIgnoreCase(h2)){
+      if(label.getName().equalsIgnoreCase(transitionName)){
         return label;
       }
     }

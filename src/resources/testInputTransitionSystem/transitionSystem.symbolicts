@@ -1,0 +1,11 @@
+VARIABLES:
+declare x:sint32, b:bool, c:sint8
+TRANSITION t1:
+Here might be any amount of text execept PRECONDITION
+PRECONDITION:
+x > 5
+b == true
+c < 5
+EFFECTS:
+x: x' == x + c
+b : b' == false
