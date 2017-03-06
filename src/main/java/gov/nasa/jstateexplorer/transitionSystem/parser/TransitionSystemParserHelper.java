@@ -28,6 +28,6 @@ public class TransitionSystemParserHelper {
    */
   public static String extractEffectedVariableName(String line){
       String[] lineParts = line.split(":");
-      return lineParts[0];
+      return lineParts[0].replace(" ", "");
   }
 }

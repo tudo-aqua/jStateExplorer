@@ -1,17 +1,21 @@
 package gov.nasa.jstateexplorer.transitionSystem.parser;
 
 import gov.nasa.jpf.constraints.api.Expression;
-import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.api.Variable;
+import gov.nasa.jpf.constraints.casts.CastOperation;
+import gov.nasa.jpf.constraints.expressions.CastExpression;
 import gov.nasa.jpf.constraints.expressions.Constant;
-import gov.nasa.jpf.constraints.expressions.LogicalOperator;
 import gov.nasa.jpf.constraints.expressions.NumericBooleanExpression;
 import gov.nasa.jpf.constraints.expressions.NumericComparator;
-import gov.nasa.jpf.constraints.expressions.PropositionalCompound;
+import gov.nasa.jpf.constraints.expressions.NumericCompound;
+import gov.nasa.jpf.constraints.expressions.NumericOperator;
 import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import gov.nasa.jstateexplorer.newTransitionSystem.TransitionLabel;
 import gov.nasa.jstateexplorer.newTransitionSystem.TransitionSystem;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import org.antlr.runtime.RecognitionException;
@@ -23,11 +27,11 @@ import org.testng.annotations.Test;
  *
  * @author mmuesly
  */
-public class TestBasicTransitionSystemParser {
+public class TransitionSystemParserBasicTest {
   
   TransitionSystemParser parser;
   Variable x, b,c;
-  public TestBasicTransitionSystemParser() {
+  public TransitionSystemParserBasicTest() {
   }
 
   @Test
@@ -53,7 +57,7 @@ public class TestBasicTransitionSystemParser {
             + "This is a very nice test transition.\n"
             + "PRECONDITION:\n"
             + "x > 5\n"
-            + "EFFECTS:\n"
+            + "EFFECT:\n"
             + "x: x' == 5\n";
             
     TransitionSystem system = parser.parseString(testSnippet);
@@ -77,7 +81,8 @@ public class TestBasicTransitionSystemParser {
     //not included here.
     NumericBooleanExpression effect = 
             new NumericBooleanExpression(xprime, NumericComparator.EQ, c5);
-    Expression<Boolean> completeEffect = ExpressionUtil.and(precondition, effect);
+    Expression<Boolean> completeEffect = 
+            ExpressionUtil.and(precondition, effect);
     assertEquals(createdTransitionLabel.getEffect(), completeEffect);
     assertEquals(createdTransitionLabel.getEffectForVariable(x), effect);
   }
@@ -94,7 +99,7 @@ public class TestBasicTransitionSystemParser {
             + "EFFECTS:\n"
             + "b: b' == 5\n"
             + "Transition h2: \n"
-            + "EFFECTS\n"
+            + "EFFECT\n"
             + "a: a' == 10";
     TransitionSystem system = parser.parseString(input);
     assertEquals(system.getTransitionLabels().size(), 2);
@@ -119,7 +124,91 @@ public class TestBasicTransitionSystemParser {
                     bprime, 
                     NumericComparator.EQ,
                     new Constant(BuiltinTypes.SINT32, 5));
-   assertEquals(parsedEffect, expectedEffect);
+    assertEquals(parsedEffect, expectedEffect);
+   
+  }
+  
+  @Test
+  public void readTransitionSystemFromFile() 
+          throws IOException, FileNotFoundException, RecognitionException {
+    parser = new TransitionSystemParser();
+    
+    String fileName = 
+            "src/resources/testInputTransitionSystem/" 
+            + "transitionSystem.symbolicts";
+    
+    TransitionSystem system = parser.parseFile(fileName);
+
+    Collection<Variable<?>> stateVariables = system.getStateVariables();
+    assertTrue(stateVariables.contains(x));
+    assertTrue(stateVariables.contains(b));
+    assertTrue(stateVariables.contains(c));
+    
+    TransitionLabel label = system.getTransitionLabelByName("t1");
+    assertNotNull(label);
+    
+    Variable xPrime = new Variable(x.getType(), "x'");
+    Expression xEffect = 
+            new NumericBooleanExpression(xPrime, NumericComparator.EQ, x);
+    assertNotEquals(label.getEffectForVariable(x), xEffect);
+    
+    Variable bPrime = new Variable(b.getType(), "b'");
+    Expression bEffect = 
+            new NumericBooleanExpression(
+                    bPrime, NumericComparator.EQ, ExpressionUtil.FALSE);
+    assertEquals(label.getEffectForVariable(b), bEffect);
+    
+  }
+  
+  @Test
+  public void transitionWithParameter() throws RecognitionException {
+    String inputFile = "VARIABLES\n"
+            + "declare x:sint32\n"
+            + "TRANSITION h1:\n"
+            + "This is a very nice test transition.\n"
+            + "PARAMETER:\n"
+            + "declare p1:sint32, p2:sint32\n"
+            + "PRECONDITION:\n"
+            + "x > p1\n"
+            + "p2 < 5\n"
+            + "EFFECT:\n"
+            + "x: x' == p1\n";
+    
+    parser = new TransitionSystemParser();
+    TransitionSystem system = parser.parseString(inputFile);
+    TransitionLabel label = system.getTransitionLabelByName("h1");
+    assertNotNull(label);
+    
+    List<Variable <?>> parameters = label.getParameterVariables();
+    Variable p1 = new Variable(BuiltinTypes.SINT32, "p1");
+    Variable p2 = new Variable(BuiltinTypes.SINT32, "p2");
+    
+    assertTrue(parameters.contains(p1));
+    assertTrue(parameters.contains(p2));
+    assertEquals(parameters.get(0), p1);
+    assertEquals(parameters.get(1), p2);
+  }
+  
+  @Test
+  public void errorTransition() throws RecognitionException {
+    String inputSystem = "VARIABLES:\n"
+            + "declare x:sint32\n"
+            + "TRANSITION T1:\n"
+            + "PRECONDITION:\n"
+            + "x > 5\n"
+            + "EFFECT:\n"
+            + "ERROR\n"
+            + "TRANSITION T2:\n"
+            + "EFFECT:\n"
+            + "x: x' == x + 1\n";
+    
+    parser = new TransitionSystemParser();
+    TransitionSystem system = parser.parseString(inputSystem);
+    
+   TransitionLabel label = system.getTransitionLabelByName("T1");
+   assertTrue(label.isError());
+   label = system.getTransitionLabelByName("T2");
+   assertFalse(label.isError());
   }
   @BeforeMethod
   public void setUpMethod() throws Exception {

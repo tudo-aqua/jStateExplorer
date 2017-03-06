@@ -6,16 +6,23 @@ import gov.nasa.jpf.constraints.parser.ParserUtil;
 import gov.nasa.jpf.constraints.types.TypeContext;
 import gov.nasa.jstateexplorer.newTransitionSystem.TransitionLabel;
 import gov.nasa.jstateexplorer.newTransitionSystem.TransitionSystem;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import org.antlr.runtime.RecognitionException;
 
 /**
- *
+ * This is a first version for a TransitionSystemParser. Mayber it should be 
+ * replaced by a parser based on ANTLR once the Grammar is complete.
  * @author mmuesly
  */
 public class TransitionSystemParser {
-  boolean declaration, precondition, newTransition, effect;
+
+
+  boolean declaration, precondition, newTransition, effect, transitionParameter;
   int count;
   TransitionLabel currentTransition;
   TransitionSystem system;
@@ -26,9 +33,11 @@ public class TransitionSystemParser {
    *This Symbols must be declared as static final String.
    */
   public static final String preconditionSymbol = "PRECONDITION";
+  public static final String transitionParameterSymbol = "PARAMETER";
   public static final String variableSymbol = "VARIABLES";
-  public static final String effectSymbol = "EFFECTS";
+  public static final String effectSymbol = "EFFECT";
   public static final String transitionSymbol = "TRANSITION";
+  public static String errorSymbol = "ERROR";
 
   public TransitionSystemParser(){
     setToDefault();
@@ -39,15 +48,12 @@ public class TransitionSystemParser {
     
   }
   
-  TransitionSystem parseString(String input) throws RecognitionException {
+  public TransitionSystem parseString(String input) throws RecognitionException {
     String[] lines = input.split("\n");
     for(String line: lines){
       parseLine(line);
     }
-    if(currentTransition != null){
-      system.addTransitionLabel(currentTransition);
-    }
-    return system;
+    return getFinalSystem();
   }
 
   private void parsedTransitionSymbol(String line){
@@ -72,6 +78,7 @@ public class TransitionSystemParser {
     this.declaration = false;
     this.precondition = false;
     this.newTransition = false;
+    this.transitionParameter = false;
     this.effect = false;
   }
 
@@ -96,7 +103,10 @@ public class TransitionSystemParser {
                   + " is a state variable,\n"
                   + "but could not find the corresponding state variable.");
       }
-    }else{
+    }else if(line.startsWith(TransitionSystemParser.errorSymbol)){
+      currentTransition.markAsErrorTransitionLabel();
+    }
+    else{
       throw new TransitionSystemParserError(line, 
               "Expected an Effect in Form var: jConstraintExpression,\n"
               +"but could not find a colon in the line.");
@@ -104,7 +114,9 @@ public class TransitionSystemParser {
   }
 
   private void parsePreconditionLine(String line) throws RecognitionException {
-    Expression<Boolean> preconditionPart = ParserUtil.parseLogical(line, new TypeContext(true), system.getStateVariables());
+    Expression<Boolean> preconditionPart = 
+            ParserUtil.parseLogical(line, 
+                    getTypeContext(), collectExpectedVariableInPrecondition());
     currentTransition.addPrecondition(preconditionPart);
   }
 
@@ -116,8 +128,10 @@ public class TransitionSystemParser {
 
   private void parseLine(String line) throws RecognitionException {
      String uppercaseLine = line.toUpperCase();
-      if(this.newTransition && 
-              !line.startsWith(TransitionSystemParser.preconditionSymbol)){
+      if(this.newTransition 
+              && !line.startsWith(TransitionSystemParser.preconditionSymbol)
+              && !line.startsWith(transitionParameterSymbol)
+              && !line.startsWith(TransitionSystemParser.effectSymbol)){
         return;
       }
       if(uppercaseLine.startsWith(TransitionSystemParser.variableSymbol)) {
@@ -126,9 +140,15 @@ public class TransitionSystemParser {
       }
       if(uppercaseLine.startsWith(TransitionSystemParser.transitionSymbol)) {
         parsedTransitionSymbol(line);
+        return;
       }
-      if(line.startsWith(TransitionSystemParser.preconditionSymbol) && 
-              this.newTransition) {
+      if(uppercaseLine.startsWith(
+              TransitionSystemParser.transitionParameterSymbol)) {
+        parsedTransitionParameter(line);
+        return;
+      }
+      if(line.startsWith(TransitionSystemParser.preconditionSymbol)
+              && (this.newTransition || this.transitionParameter)) {
         parsedPreconditionSymbol();
         return;
       }
@@ -136,16 +156,20 @@ public class TransitionSystemParser {
         parsedEffectSymbol();
         return;
       }
-      if(precondition){
+      if(this.precondition){
         parsePreconditionLine(line);
         return;
       }
-      if(effect){
+      if(this.effect){
         parseEffectLine(line);
         return;
       }
       if(this.declaration){
         parseDeclarationLine(line);
+        return;
+      }
+      if(this.transitionParameter){
+        parseParameterLine(line);
       }
   }
 
@@ -153,12 +177,14 @@ public class TransitionSystemParser {
     this.newTransition = false;
     this.precondition = false;
     this.effect = true;
+    this.transitionParameter = false;
   }
 
   private void parsedPreconditionSymbol() {
     this.newTransition = false;
     this.effect = false;
     this.precondition = true;
+    this.transitionParameter = false;
   }
 
   private void parsedVariableSymbol() {
@@ -169,14 +195,58 @@ public class TransitionSystemParser {
   private TypeContext getTypeContext() {
     return new TypeContext(true);
   }
-  
+
+  private Collection<Variable<?>> collectExpectedVariableInPrecondition() {
+    Collection expectedVariables = currentTransition.getParameterVariables();
+    expectedVariables.addAll(system.getStateVariables());
+    return expectedVariables;
+  }
+
   private Collection<Variable<?>> collectExpectedVariablesInEffect(
           String effectedVariableName) {
     Variable oldVar = system.getStateVariableByName(effectedVariableName);
     Collection<Variable<?>> expectedVariables = system.getStateVariables();
+    Collection<Variable<?>> parameterVariables =
+            currentTransition.getParameterVariables();
+    expectedVariables.addAll(parameterVariables);
     Variable primeVar = 
             new Variable(oldVar.getType(), effectedVariableName +"'");
     expectedVariables.add(primeVar);
     return expectedVariables;
+  }
+
+  /*
+  * Before exiting the parser all pending open transitions must be added 
+  * to the system. This is done in this method.
+  */
+  private TransitionSystem getFinalSystem(){
+    if(currentTransition != null){
+      system.addTransitionLabel(currentTransition);
+    }
+    return system;
+  }
+  TransitionSystem parseFile(String fileName) throws FileNotFoundException, IOException, RecognitionException {
+    BufferedReader inputFile = new BufferedReader(new FileReader(fileName));
+    String line;
+    while((line = inputFile.readLine()) != null){
+      parseLine(line);
+    }
+    
+    return getFinalSystem();
+  }
+
+  private void parsedTransitionParameter(String line) {
+    this.newTransition = false;
+    this.precondition = false;
+    this.effect = false;
+    this.transitionParameter = true;
+  }
+
+  private void parseParameterLine(String line) throws RecognitionException {
+    Collection<Variable<?>> parameters =
+            ParserUtil.parseVariableDeclaration(line);
+    for(Variable parameter: parameters){
+      currentTransition.addParameterVariable(parameter);
+    }
   }
 }
