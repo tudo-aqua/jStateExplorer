@@ -1,6 +1,7 @@
 package gov.nasa.jstateexplorer.newTransitionSystem;
 
-import gov.nasa.jstateexplorer.datastructures.state.State;
+import gov.nasa.jstateexplorer.newDatastructure.SymbolicState;
+import gov.nasa.jstateexplorer.newTransitionSystem.helper.TransitionIDGenerator;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,13 +14,17 @@ import java.util.Set;
  * @author mmuesly
  */
 public class Transition {
-  Set<TransitionLabel> transitionLabels;
-  State start, end;
+  private Set<TransitionLabel> transitionLabels;
+  private long id;
+  private SymbolicState start, end;
+  
+  private boolean reachedNewValue;
 
   public Transition(){
+    this.id = TransitionIDGenerator.getNext();
     this.transitionLabels = new HashSet<>();
   }
-  public Transition(State start, State end){
+  public Transition(SymbolicState start, SymbolicState end){
     this();
     this.start = start;
     this.end = end;
@@ -33,11 +38,31 @@ public class Transition {
     return this.transitionLabels;
   }
 
-  public void setStart(State start){
+  public void setStart(SymbolicState start){
     this.start = start;
   }
 
-  public void setEnd(State end){
+  public void setEnd(SymbolicState end){
     this.end = end;
+  }
+
+  public SymbolicState getReachedState() {
+    return this.end;
+  }
+
+  public SymbolicState getStartState() {
+    return this.start;
+  }
+  
+  public long getID(){
+    return this.id;
+  }
+
+  void markReachedNewValue() {
+    this.reachedNewValue = true;
+  }
+
+  public boolean hasReachedNewValue() {
+    return this.reachedNewValue;
   }
 }

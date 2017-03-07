@@ -41,7 +41,7 @@ public class TransitionSystemParser {
 
   public TransitionSystemParser(){
     setToDefault();
-    jConstraintParser = new ParserUtil();
+    this.jConstraintParser = new ParserUtil();
     this.system = new TransitionSystem();
     this.currentTransition = null;
     this.count = 0;
@@ -58,19 +58,20 @@ public class TransitionSystemParser {
 
   private void parsedTransitionSymbol(String line){
     setToDefault();
-    newTransition = true;
+    this.newTransition = true;
     String[] tokens = line.split(" ");
     String name = "";
     if(tokens.length > 1){
       name = tokens[1].replace(":", "");
     }else{
-      name = "t_" + count;
-      ++count;
+      name = "t_" + this.count;
+      ++this.count;
     }
-    if(currentTransition != null){
-      system.addTransitionLabel(currentTransition);
+    if(this.currentTransition != null){
+      this.system.addTransitionLabel(this.currentTransition);
     }
-    currentTransition = new TransitionLabel(name, system.getStateVariables());
+    this.currentTransition = 
+            new TransitionLabel(name, this.system.getStateVariables());
     
   }
   
@@ -87,15 +88,14 @@ public class TransitionSystemParser {
     if(line.contains(":")){
       String effectedVariableName = 
               TransitionSystemParserHelper.extractEffectedVariableName(line);
-      if(system.hasStateVariableWithName(effectedVariableName)){
+      if(this.system.hasStateVariableWithName(effectedVariableName)){
         Collection<Variable<?>> expectedVariables = 
                 collectExpectedVariablesInEffect(effectedVariableName);
         String effectString = TransitionSystemParserHelper.extractEffect(line);
-        System.out.println("reproducded Effect: " + effectString);
         Expression<Boolean> effect = 
                 ParserUtil.parseLogical(
                         effectString, getTypeContext(), expectedVariables);
-        currentTransition.addEffect(effectedVariableName, effect);
+        this.currentTransition.addEffect(effectedVariableName, effect);
       }else{
         throw new TransitionSystemParserError(line,
                 "Expected that modified Variable: " 
@@ -104,7 +104,7 @@ public class TransitionSystemParser {
                   + "but could not find the corresponding state variable.");
       }
     }else if(line.startsWith(TransitionSystemParser.errorSymbol)){
-      currentTransition.markAsErrorTransitionLabel();
+      this.currentTransition.markAsErrorTransitionLabel();
     }
     else{
       throw new TransitionSystemParserError(line, 
@@ -117,12 +117,13 @@ public class TransitionSystemParser {
     Expression<Boolean> preconditionPart = 
             ParserUtil.parseLogical(line, 
                     getTypeContext(), collectExpectedVariableInPrecondition());
-    currentTransition.addPrecondition(preconditionPart);
+    this.currentTransition.addPrecondition(preconditionPart);
   }
 
   private void parseDeclarationLine(String line) throws RecognitionException {
-    List<Variable<?>> declaredVariables = ParserUtil.parseVariableDeclaration(line);
-    system.addVariables(declaredVariables);
+    List<Variable<?>> declaredVariables = 
+            ParserUtil.parseVariableDeclaration(line);
+    this.system.addVariables(declaredVariables);
     return;
   }
 
@@ -197,17 +198,18 @@ public class TransitionSystemParser {
   }
 
   private Collection<Variable<?>> collectExpectedVariableInPrecondition() {
-    Collection expectedVariables = currentTransition.getParameterVariables();
+    Collection expectedVariables = 
+            this.currentTransition.getParameterVariables();
     expectedVariables.addAll(system.getStateVariables());
     return expectedVariables;
   }
 
   private Collection<Variable<?>> collectExpectedVariablesInEffect(
           String effectedVariableName) {
-    Variable oldVar = system.getStateVariableByName(effectedVariableName);
-    Collection<Variable<?>> expectedVariables = system.getStateVariables();
+    Variable oldVar = this.system.getStateVariableByName(effectedVariableName);
+    Collection<Variable<?>> expectedVariables = this.system.getStateVariables();
     Collection<Variable<?>> parameterVariables =
-            currentTransition.getParameterVariables();
+            this.currentTransition.getParameterVariables();
     expectedVariables.addAll(parameterVariables);
     Variable primeVar = 
             new Variable(oldVar.getType(), effectedVariableName +"'");
@@ -220,12 +222,14 @@ public class TransitionSystemParser {
   * to the system. This is done in this method.
   */
   private TransitionSystem getFinalSystem(){
-    if(currentTransition != null){
-      system.addTransitionLabel(currentTransition);
+    if(this.currentTransition != null){
+      this.system.addTransitionLabel(this.currentTransition);
     }
-    return system;
+    this.system.initalize();
+    return this.system;
   }
-  TransitionSystem parseFile(String fileName) throws FileNotFoundException, IOException, RecognitionException {
+  TransitionSystem parseFile(String fileName) 
+          throws FileNotFoundException, IOException, RecognitionException {
     BufferedReader inputFile = new BufferedReader(new FileReader(fileName));
     String line;
     while((line = inputFile.readLine()) != null){
@@ -246,7 +250,7 @@ public class TransitionSystemParser {
     Collection<Variable<?>> parameters =
             ParserUtil.parseVariableDeclaration(line);
     for(Variable parameter: parameters){
-      currentTransition.addParameterVariable(parameter);
+      this.currentTransition.addParameterVariable(parameter);
     }
   }
 }

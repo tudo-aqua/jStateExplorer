@@ -42,10 +42,20 @@ public class SolverInstance {
   }
 
   public Result isSatisfiable(Expression expr) {
+    checkSolverInitialisation();
     return solver.isSatisfiable(expr);
   }
 
   public Result solve(Expression expr, Valuation res) {
+    checkSolverInitialisation();
     return solver.solve(expr, res);
+  }
+  
+  private void checkSolverInitialisation(){
+    if(solver == null){
+      throw new RuntimeException(
+              "You must set the Solver of the SolverInstance first," +
+                      "before calling this Method.");
+    }
   }
 }
