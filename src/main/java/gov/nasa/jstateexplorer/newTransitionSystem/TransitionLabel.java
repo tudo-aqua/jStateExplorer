@@ -1,10 +1,17 @@
 package gov.nasa.jstateexplorer.newTransitionSystem;
 
+import gov.nasa.jstateexplorer.newTransitionSystem.helper.RenameUtils;
+import gov.nasa.jpf.constraints.api.ConstraintSolver;
+import gov.nasa.jpf.constraints.api.ConstraintSolver.Result;
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.expressions.NumericBooleanExpression;
 import gov.nasa.jpf.constraints.expressions.NumericComparator;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
+import gov.nasa.jstateexplorer.SolverInstance;
+import gov.nasa.jstateexplorer.datastructures.NameMap;
+import gov.nasa.jstateexplorer.datastructures.VariableReplacementMap;
+import gov.nasa.jstateexplorer.newDatastructure.SymbolicState;
 import gov.nasa.jstateexplorer.newTransitionSystem.helper.TransitionLabelHelper;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -175,5 +182,33 @@ public class TransitionLabel {
 
   public void markAsErrorTransitionLabel() {
     this.errorTransititonLabel = true;
+  }
+
+  boolean isEnabledOnState(SymbolicState state) {
+    Expression expr = ExpressionUtil.and(state.toExpression(),
+    this.getPrecondition());
+    SolverInstance solver = SolverInstance.getInstance();
+    Result res = solver.isSatisfiable(expr);
+    if(res == Result.DONT_KNOW){
+      throw new RuntimeException(
+            "Cannot decide on Precondition, therefore no answer is posisble!");
+    }
+    System.out.println("Expression: " + expr);
+    System.out.println("Result: " + res);
+    return res == Result.SAT;
+  }
+
+  SymbolicState applyOnState(SymbolicState state) {
+    Transition resultingTransition = new Transition();
+    SymbolicState resultingState = new SymbolicState();
+    for(Variable var: state.keySet()){
+      Expression effect = getEffectForVariable(var);
+      Expression currentValue = state.get(var);
+      effect = ExpressionUtil.and(effect, currentValue);
+      resultingState.put(var, effect);
+    }
+    resultingState = RenameUtils.rename(resultingState,
+            getParameterVariables(), resultingTransition.getID());
+    return resultingState;
   }
 }

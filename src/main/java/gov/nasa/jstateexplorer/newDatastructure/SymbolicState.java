@@ -3,7 +3,8 @@ package gov.nasa.jstateexplorer.newDatastructure;
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.expressions.Constant;
-import gov.nasa.jpf.constraints.types.BuiltinTypes;
+import gov.nasa.jpf.constraints.expressions.NumericBooleanExpression;
+import gov.nasa.jpf.constraints.expressions.NumericComparator;
 import gov.nasa.jpf.constraints.types.TypeContext;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import java.util.Collection;
@@ -34,14 +35,17 @@ public class SymbolicState extends HashMap<Variable, Expression<Boolean>>{
   }
 
   private Expression getInitValue(Variable var, TypeContext types) {
-    if(var.getType() instanceof BuiltinTypes){
-      if(var.getType() == BuiltinTypes.BOOL){
-        return ExpressionUtil.FALSE;
-      }else {
-        return new Constant(var.getType(), 0);
-      }
-    } else{
-      throw new RuntimeException("Don't know how to initalize this type");
+    Constant constant = 
+            new Constant(var.getType(), var.getType().getDefaultValue());
+    return new NumericBooleanExpression(var, NumericComparator.EQ, constant);
+    
+  }
+
+  public Expression<Boolean> toExpression() {
+    Expression expr = null;
+    for(Expression value: this.values()) {
+      expr = ((expr == null)? value: ExpressionUtil.and(expr, value));
     }
+    return expr;
   }
 }
