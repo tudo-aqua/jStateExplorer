@@ -9,6 +9,7 @@ import gov.nasa.jpf.constraints.expressions.NumericComparator;
 import gov.nasa.jpf.constraints.expressions.NumericCompound;
 import gov.nasa.jpf.constraints.expressions.NumericOperator;
 import gov.nasa.jpf.constraints.expressions.PropositionalCompound;
+import gov.nasa.jpf.constraints.expressions.UnaryMinus;
 import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import gov.nasa.jstateexplorer.newTransitionSystem.TransitionLabel;
@@ -17,6 +18,7 @@ import gov.nasa.jstateexplorer.transitionSystem.parser.TransitionSystemParser;
 import java.util.Collection;
 import org.antlr.runtime.RecognitionException;
 import static org.testng.Assert.*;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -25,6 +27,22 @@ import org.testng.annotations.Test;
  * @author mmuesly
  */
 public class TransitionLabelTest {
+  
+  private Variable x, y, xPrime, yPrime;
+  private Constant c1, c5, c10, cneg1;
+  
+  @BeforeClass
+  public void setUpMethod() throws Exception {
+    x = new Variable(BuiltinTypes.SINT32, "x");
+    y = new Variable(BuiltinTypes.SINT32, "y");
+    xPrime = new Variable(BuiltinTypes.SINT32, "x'");
+    yPrime = new Variable(BuiltinTypes.SINT32, "y'");
+    
+    c1 = new Constant(BuiltinTypes.SINT32, 1);
+    c5 = new Constant(BuiltinTypes.SINT32, 5);
+    c10 = new Constant(BuiltinTypes.SINT32, 10);
+    cneg1 = new Constant(BuiltinTypes.SINT32, -1);
+  }
   
   public TransitionLabelTest() {
   }
@@ -66,20 +84,12 @@ public class TransitionLabelTest {
             + "x: x' == 5\n"
             + "y: y' == 10 - x\n";
     
-    Variable x = new Variable(BuiltinTypes.SINT32, "x");
-    Variable y = new Variable(BuiltinTypes.SINT32, "y");
-    
     TransitionSystemParser parser = new TransitionSystemParser();
     TransitionSystem system = parser.parseString(testSystem);
     TransitionLabel label = system.getTransitionLabelByName("test");
     Expression effectX = label.getEffectForVariable(x);
     Expression effectY = label.getEffectForVariable(y);
     
-    Variable xPrime = new Variable(BuiltinTypes.SINT32, "x'");
-    Variable yPrime = new Variable(BuiltinTypes.SINT32, "y'");
-    
-    Constant c5 = new Constant(BuiltinTypes.SINT32, 5);
-    Constant c10 = new Constant(BuiltinTypes.SINT32, 10);
     NumericCompound additionEffectY = 
             NumericCompound.create(c10, NumericOperator.MINUS, x);
     NumericBooleanExpression effect = 
@@ -121,13 +131,9 @@ public class TransitionLabelTest {
     TransitionSystem system = parser.parseString(testSystem);
     TransitionLabel label = system.getTransitionLabelByName("test");
     
-    Variable x = new Variable(BuiltinTypes.SINT32, "x");
     Expression effectX = label.getEffectForVariable(x);
     
-    Variable primeVar = new Variable(BuiltinTypes.SINT32, "x'");
     Variable parameter = new Variable(BuiltinTypes.SINT32, "p1");
-    Constant c5 = new Constant(BuiltinTypes.SINT32, 5);
-    Constant c1 = new Constant(BuiltinTypes.SINT32, 1);
     
     NumericBooleanExpression part1 =
             new NumericBooleanExpression(x, NumericComparator.LT, parameter);
@@ -137,7 +143,7 @@ public class TransitionLabelTest {
     PropositionalCompound part4 = 
             new PropositionalCompound(part1, LogicalOperator.AND, part2);
     NumericBooleanExpression part5 =
-            new NumericBooleanExpression(primeVar, NumericComparator.EQ, part3);
+            new NumericBooleanExpression(xPrime, NumericComparator.EQ, part3);
     PropositionalCompound expectedEffectX =
             new PropositionalCompound(part4, LogicalOperator.AND, part5);
     
@@ -168,14 +174,10 @@ public class TransitionLabelTest {
     TransitionSystem system = parser.parseString(testSystem);
     TransitionLabel label = system.getTransitionLabelByName("test");
     
-    Variable x = new Variable(BuiltinTypes.SINT32, "x");
     Expression effectX = label.getEffectForVariable(x);
     
-    Variable primeVar = new Variable(BuiltinTypes.SINT32, "x'");
     Variable parameter1 = new Variable(BuiltinTypes.SINT32, "p1");
     Variable parameter2 = new Variable(BuiltinTypes.SINT32, "p2");
-    Constant c5 = new Constant(BuiltinTypes.SINT32, 5);
-    Constant c1 = new Constant(BuiltinTypes.SINT32, 1);
     
     NumericBooleanExpression part1 =
             new NumericBooleanExpression(x, NumericComparator.LT, parameter1);
@@ -190,7 +192,7 @@ public class TransitionLabelTest {
     PropositionalCompound part7 =
             new PropositionalCompound(part4, LogicalOperator.AND, part6);
     NumericBooleanExpression part5 =
-            new NumericBooleanExpression(primeVar, NumericComparator.EQ, part3);
+            new NumericBooleanExpression(xPrime, NumericComparator.EQ, part3);
     PropositionalCompound expectedEffectX =
             new PropositionalCompound(part7, LogicalOperator.AND, part5);
     
@@ -217,16 +219,32 @@ public class TransitionLabelTest {
     TransitionSystem system = parser.parseString(inputSystem);
     TransitionLabel label = system.getTransitionLabelByName("T1");
     
-    Variable x = new Variable(BuiltinTypes.SINT32, "x");
     Expression effectX = label.getEffectForVariable(x);
     
-    Constant c5 = new Constant(BuiltinTypes.SINT32, 5);
-    Variable xPrime = new Variable(BuiltinTypes.SINT32, "x'");
     NumericBooleanExpression expectedEffectX = 
             new NumericBooleanExpression(xPrime, NumericComparator.EQ, c5);
     assertEquals(effectX, expectedEffectX);
   }
-  @BeforeMethod
-  public void setUpMethod() throws Exception {
+  
+  @Test
+  public void historieCutTestAssiginingNegativeValues() 
+          throws RecognitionException{
+    String inputSystem = "Variables:\n"
+            + "declare x:sint32\n"
+            + "Transition t1:\n"
+            + "Precondition:\n"
+            + "x >= 0\n"
+            + "Effect:\n"
+            + "x: x' == -1";
+    TransitionSystemParser parser = new TransitionSystemParser();
+    TransitionSystem system = parser.parseString(inputSystem);
+    
+    TransitionLabel label = system.getTransitionLabelByName("t1");
+    Expression effectX = label.getEffectForVariable(x);
+    
+    Expression expectedEffect = new UnaryMinus(c1);
+    expectedEffect = new NumericBooleanExpression(
+            xPrime, NumericComparator.EQ, expectedEffect);
+    assertEquals(effectX, expectedEffect);
   }
 }

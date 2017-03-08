@@ -19,17 +19,16 @@ public class RenameUtils {
   public static SymbolicState rename(SymbolicState resultingState,
           Collection<Variable<?>> parameters, long id) {
      NameMap renamings = createRenamingMap(resultingState.keySet(), parameters, id);
-     resultingState.keySet().stream().forEach((stateVariable) -> {
+     for(Variable stateVariable: resultingState.keySet()){
        Expression value = resultingState.get(stateVariable);
        value = ExpressionUtil.renameVars(value, renamings);
-       
        NameMap primeRename = new NameMap();
        primeRename.mapNames(
-               stateVariable.getName(), stateVariable.getName() +"'");
+               stateVariable.getName() +"'", stateVariable.getName());
        value = ExpressionUtil.renameVars(value, primeRename);
        resultingState.put(stateVariable, value);
-    });
-     return resultingState;
+    }
+    return resultingState;
   }
 
   private static NameMap createRenamingMap(

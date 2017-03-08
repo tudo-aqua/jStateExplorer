@@ -130,9 +130,12 @@ public class TransitionSystemParser {
   private void parseLine(String line) throws RecognitionException {
      String uppercaseLine = line.toUpperCase();
       if(this.newTransition 
-              && !line.startsWith(TransitionSystemParser.preconditionSymbol)
-              && !line.startsWith(transitionParameterSymbol)
-              && !line.startsWith(TransitionSystemParser.effectSymbol)){
+              && !uppercaseLine.startsWith(
+                      TransitionSystemParser.preconditionSymbol)
+              && !uppercaseLine.startsWith(
+                      TransitionSystemParser.transitionParameterSymbol)
+              && !uppercaseLine.startsWith(
+                      TransitionSystemParser.effectSymbol)){
         return;
       }
       if(uppercaseLine.startsWith(TransitionSystemParser.variableSymbol)) {
@@ -148,12 +151,12 @@ public class TransitionSystemParser {
         parsedTransitionParameter(line);
         return;
       }
-      if(line.startsWith(TransitionSystemParser.preconditionSymbol)
+      if(uppercaseLine.startsWith(TransitionSystemParser.preconditionSymbol)
               && (this.newTransition || this.transitionParameter)) {
         parsedPreconditionSymbol();
         return;
       }
-      if(line.startsWith(TransitionSystemParser.effectSymbol)){
+      if(uppercaseLine.startsWith(TransitionSystemParser.effectSymbol)){
         parsedEffectSymbol();
         return;
       }
