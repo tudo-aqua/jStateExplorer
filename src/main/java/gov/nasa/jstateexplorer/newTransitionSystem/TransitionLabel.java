@@ -63,6 +63,7 @@ public class TransitionLabel {
         returnEffect = this.effectConstraints.get(var);
         //For the precondition must all parts containing
         //any effect variable be included. 
+        System.out.println("REturn Effect: " + returnEffect.toString());
         Expression relevantPrecondition = 
                 createRelevantPrecondition(
                         ExpressionUtil.freeVariables(returnEffect),
@@ -184,7 +185,7 @@ public class TransitionLabel {
     this.errorTransititonLabel = true;
   }
 
-  boolean isEnabledOnState(SymbolicState state) {
+  public boolean isEnabledOnState(SymbolicState state) {
     Expression expr = ExpressionUtil.and(state.toExpression(),
     this.getPrecondition());
     SolverInstance solver = SolverInstance.getInstance();
@@ -198,17 +199,25 @@ public class TransitionLabel {
     return res == Result.SAT;
   }
 
-  SymbolicState applyOnState(SymbolicState state) {
-    Transition resultingTransition = new Transition();
+  public SymbolicState applyOnState(SymbolicState state, long transitionID) {
     SymbolicState resultingState = new SymbolicState();
     for(Variable var: state.keySet()){
-      Expression effect = getEffectForVariable(var);
-      Expression currentValue = state.get(var);
-      effect = ExpressionUtil.and(effect, currentValue);
+      Expression effect = combineEffectAndStateValue(state, var);
       resultingState.put(var, effect);
     }
     resultingState = RenameUtils.rename(resultingState,
-            getParameterVariables(), resultingTransition.getID());
+            getParameterVariables(), transitionID);
     return resultingState;
+  }
+  
+  private Expression combineEffectAndStateValue(SymbolicState state, Variable var){
+    Expression effect = getEffectForVariable(var);
+    Collection<Variable<?>> variblesInEffect = 
+            ExpressionUtil.freeVariables(effect);
+    if(variblesInEffect.contains(var)){
+      Expression currentValue = state.get(var);
+      effect = ExpressionUtil.and(effect, currentValue);
+    }
+    return effect;
   }
 }

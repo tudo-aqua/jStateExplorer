@@ -140,7 +140,8 @@ public class TransitionSystem {
           executedTransition.setStart(state);
           executedTransition.addLabel(label);
           
-          SymbolicState resultingState = label.applyOnState(state);
+          SymbolicState resultingState = label.applyOnState(state,
+                  executedTransition.getID());
           executedTransition.setEnd(resultingState);
           if(isNewValueInState(resultingState)){
             this.states.getOrDefault(i, new ArrayList<>()).add(resultingState);
