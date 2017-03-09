@@ -3,6 +3,7 @@ package gov.nasa.jstateexplorer.newTransitionSystem;
 import gov.nasa.jpf.constraints.api.ConstraintSolver;
 import gov.nasa.jpf.constraints.api.ConstraintSolver.Result;
 import gov.nasa.jpf.constraints.api.Expression;
+import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.expressions.LogicalOperator;
 import gov.nasa.jpf.constraints.expressions.Negation;
@@ -106,6 +107,16 @@ public class TransitionSystem {
     return null;
   }
 
+  //Returns last dapth in which a new State has been reached.
+  public int unrollToFixPoint() {
+    int depth = 0;
+    while(!this.states.getOrDefault(depth, new ArrayList<>()).isEmpty()){
+      ++depth;
+      unrollIteration(depth);
+    }
+    return --depth;
+  }
+
   void unrollToDepth(int depth) {
     for(int i = 1; i <= depth; i++){
       unrollIteration(i);
@@ -157,22 +168,27 @@ public class TransitionSystem {
   private boolean isNewValueInState(SymbolicState resultingState) {
     SolverInstance solver = SolverInstance.getInstance();
     Expression newStateExpression = resultingState.toExpression();
-    newStateExpression = ExpressionQuantifier.existensQuantififaction(
-            newStateExpression, this.stateVariables);
+//    newStateExpression = ExpressionQuantifier.existensQuantififaction(
+//            newStateExpression, this.stateVariables);
     Expression reachedExpression = 
             TransitionSystemHelper.createReachExpression(this);
-    reachedExpression = ExpressionQuantifier.allQuantification(
-            reachedExpression, this.stateVariables);
+//    reachedExpression = ExpressionQuantifier.allQuantification(
+//            reachedExpression, this.stateVariables);
 
     reachedExpression = new Negation(reachedExpression);
-    PropositionalCompound reachedTest = new PropositionalCompound(
+    Expression reachedTest = new PropositionalCompound(
             newStateExpression, LogicalOperator.AND, reachedExpression);
-
-    Result res = solver.isSatisfiable(reachedExpression);
+    //reachedTest = ExpressionQuantifier.experimentalQuantification(reachedTest, stateVariables);
+    System.out.println("reachedExpression: " + reachedTest);
+    //Result res = solver.isSatisfiable(reachedTest);
+    Valuation resVal = new Valuation();
+    Result res = solver.solve(reachedTest, resVal);
     if(res == ConstraintSolver.Result.DONT_KNOW){
       throw new RuntimeException(
               "Cannot decide State reachability!! Abort execution!");
     }
+    System.out.println("Result reachTest: " + res);
+    System.out.println("Valuation: " +resVal.toString());
     return res == Result.SAT;
     
   }

@@ -162,6 +162,153 @@ public class TransitionSystemTest {
   }
 
   @Test
+  public void applyIterationTillEnd1Test() throws RecognitionException {
+    String inputSystem = "VARIABLES:\n"
+            + "declare x:sint32, y:sint32\n"
+            + "TRANSITION h1:\n"
+            + "PRECONDITION:\n"
+            + "x >= -1\n"
+            + "y < 5\n"
+            + "EFFECT:\n"
+            + "y: y' == y + 2\n"
+            + "x: x' == -1\n"
+            + "TRANSITION h2:\n"
+            + "PRECONDITION:\n"
+            + "x < 0\n"
+            + "y >= 5\n"
+            + "EFFECT:\n"
+            + "y: y' == 0\n"
+            + "x: x' == x + 1";
+    TransitionSystemParser parser = new TransitionSystemParser();
+    TransitionSystem system = parser.parseString(inputSystem);
+    system.initalize();
+    
+    int fixPointDepth = system.unrollToFixPoint();
+    //system.unrollToDepth(10);
+    assertEquals(fixPointDepth, 3);
+    assertEquals(system.getStatesNewInDepth(2).size(), 1);
+    assertEquals(system.getStatesNewInDepth(3).size(), 1);
+    assertEquals(system.getStatesNewInDepth(4).size(), 0);
+    
+    Expression cneg1 = new UnaryMinus(c1);
+    Expression xValue = 
+            new NumericBooleanExpression(x, NumericComparator.EQ, cneg1);
+    
+    Transition appliedTransition1 = system.getTransitionsOfIteration(1).get(0);
+    assertEquals(system.getTransitionsOfIteration(2).size(), 1);
+    Transition appliedTransition2 = system.getTransitionsOfIteration(2).get(0);
+    assertEquals(system.getTransitionsOfIteration(3).size(), 1);
+    Transition appliedTransition3 = system.getTransitionsOfIteration(3).get(0);
+    assertEquals(system.getTransitionsOfIteration(4).size(), 1);
+    Transition appliedTransition4 = system.getTransitionsOfIteration(4).get(0);
+
+    SymbolicState newDepth2 = system.getStatesNewInDepth(2).get(0);
+    SymbolicState newDepth3 = system.getStatesNewInDepth(3).get(0);
+    SymbolicState newDepth4 = appliedTransition4.getReachedState();
+
+
+    
+    Expression effect2X = newDepth2.get(x);
+    assertEquals( effect2X, xValue);
+    
+    Expression effect3X = newDepth3.get(x);
+    assertEquals(effect3X, xValue);
+    
+    Expression effect4X = newDepth4.get(x);
+    Variable xReplacement4 = new Variable(
+            BuiltinTypes.SINT32, "x_sv_" + appliedTransition4.getID());
+    Expression effect4XPart1 = new NumericBooleanExpression(
+            xReplacement4, NumericComparator.EQ, cneg1);
+    Expression effect4XPart2 = new NumericBooleanExpression(
+            xReplacement4, NumericComparator.LT, c0);
+    Expression effect4Xexpected = 
+            new NumericCompound(xReplacement4, NumericOperator.PLUS, c1);
+    effect4Xexpected =
+            new NumericBooleanExpression(
+                    x, NumericComparator.EQ, effect4Xexpected);
+    effect4Xexpected = ExpressionUtil.and(effect4XPart2, effect4Xexpected);
+    effect4Xexpected = ExpressionUtil.and(effect4Xexpected, effect4XPart1);
+    assertEquals(effect4X, effect4Xexpected);
+    
+    Expression yReplacement1 = 
+            new Variable(BuiltinTypes.SINT32,
+                    "y_sv_" + appliedTransition1.getID());
+    Expression yReplacement2 =
+            new Variable(BuiltinTypes.SINT32,
+                    "y_sv_" + appliedTransition2.getID());
+    Expression yReplacement3 =
+            new Variable(BuiltinTypes.SINT32,
+                    "y_sv_" + appliedTransition3.getID());
+    //yValue after depth 1
+    Expression yValuePart1pre = 
+            new NumericCompound(yReplacement1, NumericOperator.PLUS, c2);
+    Expression yValuePart1 = 
+            new NumericBooleanExpression(
+                    y, NumericComparator.EQ, yValuePart1pre);
+    Expression yValuePart2 = 
+            new NumericBooleanExpression(
+                    yReplacement1, NumericComparator.LT, c5);
+    Expression yValuePart3 = 
+            new NumericBooleanExpression(
+                    yReplacement1, NumericComparator.EQ, c0);
+    Expression yValue1 = 
+            ExpressionUtil.and(yValuePart2, yValuePart1);
+    yValue1 = ExpressionUtil.and(yValue1, yValuePart3);
+    
+    //yValue after Depth 2
+    // (y_sv_2 +2)
+    Expression yValue2Part1pre = 
+            new NumericCompound(yReplacement2, NumericOperator.PLUS, c2);
+    //
+    Expression yValue2Part1 =
+            new NumericBooleanExpression(
+                    y, NumericComparator.EQ, yValue2Part1pre);
+    Expression yValue2Part2 =
+            new NumericBooleanExpression(
+                    yReplacement2, NumericComparator.LT, c5);
+    Expression yValue2Part4 = ExpressionUtil.and(yValue2Part2, yValue2Part1);
+    Expression yValue2Part3 = 
+            new NumericBooleanExpression(
+                    yReplacement2, NumericComparator.EQ, yValuePart1pre);
+    yValue2Part3 = ExpressionUtil.and(yValuePart2, yValue2Part3);
+    yValue2Part3 = ExpressionUtil.and(yValue2Part3, yValuePart3);
+    Expression yValue2 = ExpressionUtil.and(yValue2Part4, yValue2Part3);
+    Expression effectY2 = newDepth2.get(y);
+    assertEquals(effectY2, yValue2);
+
+    //yValue after Depth 3
+    //(y_sv_4 +2)
+    Expression yValue3Part1Pre =
+            new NumericCompound(yReplacement3, NumericOperator.PLUS, c2);
+    //y == (y_sv_4 + 2)
+    Expression yValue3Part1 =
+            new NumericBooleanExpression(
+                    y, NumericComparator.EQ, yValue3Part1Pre);
+    //(y_sv_4 < 5)
+    Expression yValue3Part2 =
+            new NumericBooleanExpression(
+                    yReplacement3, NumericComparator.LT, c5);
+    //(y_sv_4 < 5) && y == (y_sv_4 + 2)
+    yValue3Part2 = ExpressionUtil.and(yValue3Part2, yValue3Part1);
+    // y_sv_4 == (y_sv_3 + 2)
+    Expression yValue3Part3 = 
+            new NumericBooleanExpression(
+                    yReplacement3, NumericComparator.EQ, yValue2Part1pre);
+    //(y_sv_3 <5) && y_sv_4 == (y_sv_3 + 2)
+    yValue3Part3 = ExpressionUtil.and(yValue2Part2, yValue3Part3);
+    yValue3Part3 = ExpressionUtil.and(yValue3Part3, yValue2Part3);
+    Expression yValue3 = ExpressionUtil.and(yValue3Part2, yValue3Part3);
+    Expression effectY3 = newDepth3.get(y);
+    assertEquals(effectY3, yValue3);
+    
+    //yVlaue after Depth 4
+    Expression yValue4 = 
+            new NumericBooleanExpression(y, NumericComparator.EQ, c0);
+    Expression effectY4 = newDepth4.get(y);
+    assertEquals(effectY4, yValue4);
+  }
+
+  @Test
   public void getInitStateWithBuiltinTypes() {
     List<Variable<?>> stateVariables = new ArrayList<>();
 
