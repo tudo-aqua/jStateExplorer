@@ -326,12 +326,32 @@ public class TransitionSystemTest {
     
     Constant c0 = new Constant(BuiltinTypes.SINT32, 0);
     Expression valueA = 
-            new NumericBooleanExpression(x, NumericComparator.EQ, c0);
-    Expression valueB = 
             new NumericBooleanExpression(y, NumericComparator.EQ, c0);
+    Expression valueB = 
+            new NumericBooleanExpression(x, NumericComparator.EQ, c0);
     Expression expectedInitExpression = 
             new PropositionalCompound(valueA, LogicalOperator.AND, valueB);
     assertEquals(receivedInitState.toExpression(), expectedInitExpression);
+  }
+  
+  @Test
+  public void reachesErrorStateTest() throws RecognitionException {
+    String inputSystem = "Variables:\n"
+            + "declare x:sint32\n"
+            + "Transition t1:\n"
+            + "EFFECT:\n"
+            + "ERROR\n";
+    TransitionSystemParser parser = new TransitionSystemParser();
+    TransitionSystem system = parser.parseString(inputSystem);
+    
+    system.initalize();
+    system.unrollToFixPoint();
+    
+    assertEquals(system.getTransitionsOfIteration(1).size(), 1);
+    Transition appliedTransition = system.getTransitionsOfIteration(1).get(0);
+    assertTrue(appliedTransition.hasReachedErrorState());
+    SymbolicState errorState = appliedTransition.getReachedState();
+    assertTrue(errorState.isError());
   }
 
 }

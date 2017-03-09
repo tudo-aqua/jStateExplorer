@@ -250,6 +250,7 @@ public class TransitionSystemParser {
   }
 
   private void parseParameterLine(String line) throws RecognitionException {
+    System.out.println("paramLine: " + line);
     Collection<Variable<?>> parameters =
             ParserUtil.parseVariableDeclaration(line);
     for(Variable parameter: parameters){

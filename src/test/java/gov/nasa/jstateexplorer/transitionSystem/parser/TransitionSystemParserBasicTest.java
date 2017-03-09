@@ -210,6 +210,19 @@ public class TransitionSystemParserBasicTest {
    label = system.getTransitionLabelByName("T2");
    assertFalse(label.isError());
   }
+
+  @Test
+  public void mostSimpleErrorTransitionTest() throws RecognitionException {
+    String inputSystem = "Variables\n"
+            + "declare x:sint32\n"
+            + "Transition t1:\n"
+            + "EFFECT:\n"
+            + "ERROR\n";
+    parser = new TransitionSystemParser();
+    TransitionSystem system = parser.parseString(inputSystem);
+    TransitionLabel errorLabel = system.getTransitionLabelByName("t1");
+    assertTrue(errorLabel.isError());
+  }
   @BeforeMethod
   public void setUpMethod() throws Exception {
     x = new Variable(BuiltinTypes.SINT32, "x");

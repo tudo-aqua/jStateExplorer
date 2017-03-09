@@ -26,12 +26,15 @@ public class TransitionSystem {
   private List<TransitionLabel> transitionLabels;
   private HashMap<Integer, List<SymbolicState>> states;
   private HashMap<Integer, List<Transition>> transitions;
+  private SymbolicState errorState;
   
   public TransitionSystem(){
     this.stateVariables = new ArrayList<>();
     this.transitionLabels = new ArrayList<>();
     this.states = new HashMap<>();
     this.transitions = new HashMap<>();
+    errorState = new SymbolicState();
+    errorState.markAsErrorState();
   }
 
   public List<Variable<?>> getStateVariables(){
@@ -110,7 +113,7 @@ public class TransitionSystem {
   //Returns last dapth in which a new State has been reached.
   public int unrollToFixPoint() {
     int depth = 0;
-    while(!this.states.getOrDefault(depth, new ArrayList<>()).isEmpty()){
+    while(hasNewStates(depth)){
       ++depth;
       unrollIteration(depth);
     }
@@ -131,36 +134,21 @@ public class TransitionSystem {
     return this.transitions.getOrDefault(i, new ArrayList<>());
   }
 
-  private void unrollIteration(int i) {
-    this.states.put(i, new ArrayList<>());
-    this.transitions.put(i, new ArrayList<>());
-    if(i == 0){
+  private void unrollIteration(int currentDepth) {
+    this.states.put(currentDepth, new ArrayList<>());
+    this.transitions.put(currentDepth, new ArrayList<>());
+    if(currentDepth == 0){
       throw new RuntimeException(
               "Cannot unroll Iterations in Depth less then 1.");
     }
     System.out.println("gov.nasa.jstateexplorer.newTransitionSystem.TransitionSystem.unrollIteration()");
-    System.out.println("i: " + i);
-    for(SymbolicState state: this.getStatesNewInDepth(i - 1)){
-      System.out.println("Init State: " + state.toExpression());
+    System.out.println("i: " + currentDepth);
+    for(SymbolicState state: this.getStatesNewInDepth(currentDepth - 1)){
+      if(state.isError()){
+        continue;
+      }
       for(TransitionLabel label: this.transitionLabels){
-        if(label.isEnabledOnState(state)){
-          //This is an execution of an TransitionLabel and therefore a
-          //new Transition. 
-          //So it should be added to the Transition System anyhow.
-          Transition executedTransition = new Transition();
-          executedTransition.setStart(state);
-          executedTransition.addLabel(label);
-          
-          SymbolicState resultingState = label.applyOnState(state,
-                  executedTransition.getID());
-          executedTransition.setEnd(resultingState);
-          if(isNewValueInState(resultingState)){
-            this.states.getOrDefault(i, new ArrayList<>()).add(resultingState);
-            executedTransition.markReachedNewValue();
-          }
-          this.transitions.getOrDefault(i, new ArrayList<>())
-                  .add(executedTransition);
-        }
+        processTransitionLabelOnState(label, state, currentDepth);
       }
     }
   }
@@ -168,11 +156,9 @@ public class TransitionSystem {
   private boolean isNewValueInState(SymbolicState resultingState) {
     SolverInstance solver = SolverInstance.getInstance();
     Expression newStateExpression = resultingState.toExpression();
-//    newStateExpression = ExpressionQuantifier.existensQuantififaction(
-//            newStateExpression, this.stateVariables);
     Expression reachedExpression = 
             TransitionSystemHelper.createReachExpression(this);
-//    reachedExpression = ExpressionQuantifier.allQuantification(
+//    reachedExpression = ExpressionQuantifier.existensQuantification(
 //            reachedExpression, this.stateVariables);
 
     reachedExpression = new Negation(reachedExpression);
@@ -195,5 +181,60 @@ public class TransitionSystem {
 
   public HashMap<Integer, List<SymbolicState>> getAllStates(){
     return new HashMap<>(this.states);
+  }
+
+  //This might be used in future. A system should keep track on used types,
+  //but we don't do this at the moment. It will be necessary once
+  //other types then the BuiltinTypes are required.
+  public TypeContext getTypes() {
+    return new TypeContext(true);
+  }
+
+  private boolean processTransitionLabelOnState(TransitionLabel label,
+          SymbolicState state, int currentDepth) {
+    System.out.println("onState");
+    System.out.println(state);
+    if(label.isEnabledOnState(state)){
+      //This is an execution of an TransitionLabel and therefore a
+      //new Transition. 
+      //So it should be added to the Transition System anyhow.
+      Transition executedTransition = new Transition();
+      executedTransition.setStart(state);
+      executedTransition.addLabel(label);
+      List<SymbolicState> reachedStates = 
+                this.states.getOrDefault(currentDepth, new ArrayList<>());
+      if(label.isError()){
+        executedTransition.markReachedErrorState();
+        executedTransition.setEnd(errorState);
+        if(!reachedStates.contains(errorState)){
+          reachedStates.add(errorState);
+        }
+      }else{
+        SymbolicState resultingState = label.applyOnState(state,
+                executedTransition.getID());
+        executedTransition.setEnd(resultingState);
+        if(isNewValueInState(resultingState)){
+          reachedStates.add(resultingState);
+          executedTransition.markReachedNewValue();
+        }
+      }
+      this.transitions.getOrDefault(currentDepth, new ArrayList<>())
+              .add(executedTransition);
+      return true;
+    }
+    return false;
+  }
+
+  private boolean hasNewStates(int depth) {
+    List<SymbolicState> potentialNewState = 
+            this.states.getOrDefault(depth, new ArrayList<>());
+    if(potentialNewState.isEmpty()){
+      return false;
+    }
+    if(potentialNewState.size() == 1 
+            && potentialNewState.get(0) == errorState){
+      return false;
+    }
+    return true;
   }
 }
