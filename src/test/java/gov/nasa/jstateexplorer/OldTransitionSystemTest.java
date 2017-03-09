@@ -26,19 +26,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import org.junit.Before;
-import org.junit.Test;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
-public class TransitionSystemTest {
+@Test
+public class OldTransitionSystemTest {
   
-  public TransitionSystemTest() {
+  public OldTransitionSystemTest() {
   }
   ConstraintSolver solver;
-  @Before
+  @BeforeClass
   public void setUp() {
     Properties conf = new Properties();
     conf.setProperty("symbolic.dp", "Z3");

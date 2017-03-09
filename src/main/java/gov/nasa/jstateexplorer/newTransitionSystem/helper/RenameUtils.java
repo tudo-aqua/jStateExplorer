@@ -4,7 +4,6 @@ import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import gov.nasa.jstateexplorer.datastructures.NameMap;
-import gov.nasa.jstateexplorer.datastructures.VariableReplacementMap;
 import gov.nasa.jstateexplorer.newDatastructure.SymbolicState;
 import java.util.Collection;
 import java.util.Set;
@@ -32,7 +31,7 @@ public class RenameUtils {
   }
 
   private static NameMap createRenamingMap(
-          Set<Variable> stateVariables,
+          Set<Variable<?>> stateVariables,
           Collection<Variable<?>> parameters, long id) {
     NameMap renamings = new NameMap();
 

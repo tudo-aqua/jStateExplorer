@@ -19,6 +19,7 @@ public class Transition {
   private SymbolicState start, end;
   
   private boolean reachedNewValue;
+  private boolean reachedError;
 
   public Transition(){
     this.id = TransitionIDGenerator.getNext();
@@ -58,11 +59,19 @@ public class Transition {
     return this.id;
   }
 
-  void markReachedNewValue() {
+  public void markReachedNewValue() {
     this.reachedNewValue = true;
+  }
+
+  public void markReachedErrorState() {
+    this.reachedError = true;
   }
 
   public boolean hasReachedNewValue() {
     return this.reachedNewValue;
+  }
+
+  boolean hasReachedErrorState() {
+    return this.reachedError;
   }
 }
