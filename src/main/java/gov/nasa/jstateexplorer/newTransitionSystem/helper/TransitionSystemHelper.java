@@ -20,7 +20,7 @@ public class TransitionSystemHelper {
     for(List<SymbolicState> statesInOneDepth: states.values()){
       for(SymbolicState state: statesInOneDepth){
         reachedStates = ((reachedStates == null)? state.toExpression():
-                ExpressionUtil.and(reachedStates, state.toExpression()));
+                ExpressionUtil.or(reachedStates, state.toExpression()));
       }
     }
     return reachedStates;
