@@ -207,13 +207,17 @@ public class TransitionLabel {
     return resultingState;
   }
   
-  private Expression combineEffectAndStateValue(SymbolicState state, Variable var){
+  private Expression combineEffectAndStateValue(
+          SymbolicState state, Variable var){
     Expression effect = getEffectForVariable(var);
     Collection<Variable<?>> variblesInEffect = 
             ExpressionUtil.freeVariables(effect);
-    if(variblesInEffect.contains(var)){
-      Expression currentValue = state.get(var);
-      effect = ExpressionUtil.and(effect, currentValue);
+    Set<Variable<?>> stateVariables = state.keySet();
+    for(Variable stateVar: stateVariables) {
+      if(variblesInEffect.contains(stateVar)){
+        Expression currentValue = state.get(stateVar);
+        effect = ExpressionUtil.and(effect, currentValue);
+      }
     }
     return effect;
   }
