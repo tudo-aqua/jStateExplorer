@@ -16,6 +16,7 @@ import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.types.TypeContext;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import gov.nasa.jstateexplorer.SolverInstance;
+import gov.nasa.jstateexplorer.TestHelper;
 import gov.nasa.jstateexplorer.newDatastructure.SymbolicState;
 import gov.nasa.jstateexplorer.transitionSystem.parser.TransitionSystemParser;
 import java.util.ArrayList;
@@ -51,14 +52,7 @@ public class TransitionSystemTest {
     xPrime = new Variable(BuiltinTypes.SINT32, "x'");
     yPrime = new Variable(BuiltinTypes.SINT32, "y'");
   
-    //Setup Z3 solver, as wee need it during enrolling of Transition Systems.
-    Properties conf = new Properties();
-    conf.setProperty("symbolic.dp", "NativeZ3");
-    conf.setProperty("symbolic.dp.z3.bitvectors", "false");
-    conf.setProperty("log.finest", "psyco");
-    ConstraintSolverFactory factory = new ConstraintSolverFactory(conf);
-    ConstraintSolver solver = factory.createSolver();
-    SolverInstance.getInstance().setSolver(solver);
+    TestHelper.setupSolver();
   }
   @Test
   public void getStateVariablesIsCopy(){
