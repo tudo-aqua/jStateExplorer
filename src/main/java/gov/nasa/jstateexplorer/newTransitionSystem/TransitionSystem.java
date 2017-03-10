@@ -98,9 +98,11 @@ public class TransitionSystem {
   }
 
   public void initalize() {
-    SymbolicState initState = 
-            new SymbolicState(this.stateVariables, new TypeContext(true));
-    setInitState(initState);
+    if(getInitState() == null){
+      SymbolicState initState = 
+              new SymbolicState(this.stateVariables, new TypeContext(true));
+      setInitState(initState);
+    }
   }
   public SymbolicState getInitState() {
     if(this.newStates.containsKey(0)){
@@ -242,5 +244,18 @@ public class TransitionSystem {
 
   public SymbolicState getErrorState() {
     return this.errorState;
+  }
+
+  public void addInitValue(String variableName, Expression value) {
+    SymbolicState init = getInitState();
+    if(init == null){
+      initalize();
+      init = getInitState();
+    }
+    for(Variable stateVar: this.stateVariables){
+      if(stateVar.getName().equals(variableName)){
+        init.put(stateVar, value);
+      }
+    }
   }
 }
