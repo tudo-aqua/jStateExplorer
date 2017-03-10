@@ -32,7 +32,10 @@ public class Transition {
   }
   
   public void addLabel(TransitionLabel label){
-    this.transitionLabels.add(label);
+    if(label != null){
+      label.addExecutingTransition(this);
+      this.transitionLabels.add(label);
+    }
   }
 
   public Set<TransitionLabel> getTransitionLabels(){
@@ -40,11 +43,17 @@ public class Transition {
   }
 
   public void setStart(SymbolicState start){
-    this.start = start;
+    if(start != null){
+      this.start = start;
+      start.addOutgoingTransition(this);
+    }
   }
 
   public void setEnd(SymbolicState end){
-    this.end = end;
+    if(end != null){
+      this.end = end;
+      end.addIncomingTransition(this);
+    }
   }
 
   public SymbolicState getReachedState() {

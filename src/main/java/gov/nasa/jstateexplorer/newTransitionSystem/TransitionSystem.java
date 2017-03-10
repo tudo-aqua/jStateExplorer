@@ -24,14 +24,16 @@ import java.util.List;
 public class TransitionSystem {
   private List<Variable<?>> stateVariables;
   private List<TransitionLabel> transitionLabels;
-  private HashMap<Integer, List<SymbolicState>> states;
+  private HashMap<Integer, List<SymbolicState>> newStates;
+  private HashMap<Integer, List<SymbolicState>> allStates;
   private HashMap<Integer, List<Transition>> transitions;
   private SymbolicState errorState;
   
   public TransitionSystem(){
     this.stateVariables = new ArrayList<>();
     this.transitionLabels = new ArrayList<>();
-    this.states = new HashMap<>();
+    this.newStates = new HashMap<>();
+    this.allStates = new HashMap<>();
     this.transitions = new HashMap<>();
     errorState = new SymbolicState();
     errorState.markAsErrorState();
@@ -92,7 +94,7 @@ public class TransitionSystem {
   void setInitState(SymbolicState initState) {
     ArrayList<SymbolicState> initStates = new ArrayList<>();
     initStates.add(initState);
-    this.states.put(0, initStates);
+    this.newStates.put(0, initStates);
   }
 
   public void initalize() {
@@ -101,8 +103,8 @@ public class TransitionSystem {
     setInitState(initState);
   }
   public SymbolicState getInitState() {
-    if(this.states.containsKey(0)){
-      List<SymbolicState> initStates = this.states.get(0);
+    if(this.newStates.containsKey(0)){
+      List<SymbolicState> initStates = this.newStates.get(0);
       if(initStates.size() == 1){
         return initStates.get(0);
       }
@@ -127,7 +129,7 @@ public class TransitionSystem {
   }
 
   List<SymbolicState> getStatesNewInDepth(int i) {
-    return new ArrayList<>(this.states.getOrDefault(i, new ArrayList<>()));
+    return new ArrayList<>(this.newStates.getOrDefault(i, new ArrayList<>()));
   }
 
   List<Transition> getTransitionsOfIteration(int i) {
@@ -135,14 +137,13 @@ public class TransitionSystem {
   }
 
   private void unrollIteration(int currentDepth) {
-    this.states.put(currentDepth, new ArrayList<>());
+    this.newStates.put(currentDepth, new ArrayList<>());
+    this.allStates.put(currentDepth, new ArrayList<>());
     this.transitions.put(currentDepth, new ArrayList<>());
     if(currentDepth == 0){
       throw new RuntimeException(
               "Cannot unroll Iterations in Depth less then 1.");
     }
-    System.out.println("gov.nasa.jstateexplorer.newTransitionSystem.TransitionSystem.unrollIteration()");
-    System.out.println("i: " + currentDepth);
     for(SymbolicState state: this.getStatesNewInDepth(currentDepth - 1)){
       if(state.isError()){
         continue;
@@ -158,31 +159,26 @@ public class TransitionSystem {
     Expression newStateExpression = resultingState.toExpression();
     Expression reachedExpression = 
             TransitionSystemHelper.createReachExpression(this);
-//    reachedExpression = ExpressionQuantifier.existensQuantification(
-//            reachedExpression, this.stateVariables);
 
     reachedExpression = new Negation(reachedExpression);
     Expression reachedTest = new PropositionalCompound(
             newStateExpression, LogicalOperator.AND, reachedExpression);
-    //reachedTest = ExpressionQuantifier.experimentalQuantification(reachedTest, stateVariables);
-    System.out.println("reachedExpression: " + reachedTest);
-    //Result res = solver.isSatisfiable(reachedTest);
-    Valuation resVal = new Valuation();
-    Result res = solver.solve(reachedTest, resVal);
+    Result res = solver.isSatisfiable(reachedTest);
     if(res == ConstraintSolver.Result.DONT_KNOW){
       throw new RuntimeException(
               "Cannot decide State reachability!! Abort execution!");
     }
-    System.out.println("Result reachTest: " + res);
-    System.out.println("Valuation: " +resVal.toString());
     return res == Result.SAT;
-    
   }
 
-  public HashMap<Integer, List<SymbolicState>> getAllStates(){
-    return new HashMap<>(this.states);
+  public HashMap<Integer, List<SymbolicState>> getAllNewStates(){
+    return new HashMap<>(this.newStates);
   }
 
+  public List<SymbolicState> getAllStatesInDepth(int depth){
+    return new ArrayList<>(this.allStates.get(depth));
+  }
+          
   //This might be used in future. A system should keep track on used types,
   //but we don't do this at the moment. It will be necessary once
   //other types then the BuiltinTypes are required.
@@ -192,8 +188,6 @@ public class TransitionSystem {
 
   private boolean processTransitionLabelOnState(TransitionLabel label,
           SymbolicState state, int currentDepth) {
-    System.out.println("onState");
-    System.out.println(state);
     if(label.isEnabledOnState(state)){
       //This is an execution of an TransitionLabel and therefore a
       //new Transition. 
@@ -202,13 +196,20 @@ public class TransitionSystem {
       executedTransition.setStart(state);
       executedTransition.addLabel(label);
       List<SymbolicState> reachedStates = 
-                this.states.getOrDefault(currentDepth, new ArrayList<>());
+                this.newStates.getOrDefault(currentDepth, new ArrayList<>());
+      List<SymbolicState> allReachedState = 
+              this.allStates.getOrDefault(currentDepth, new ArrayList<>());
       if(label.isError()){
-        executedTransition.markReachedErrorState();
-        executedTransition.setEnd(errorState);
-        if(!reachedStates.contains(errorState)){
+        if(!errorState.hasIncomingTransitions()){
           reachedStates.add(errorState);
         }
+        if(!allReachedState.contains(errorState)){
+          allReachedState.add(errorState);
+        }
+        executedTransition.markReachedErrorState();
+        //This also will change has InocomingTransitions... 
+        //Must be executed after if Statement!!!
+        executedTransition.setEnd(errorState);
       }else{
         SymbolicState resultingState = label.applyOnState(state,
                 executedTransition.getID());
@@ -217,6 +218,7 @@ public class TransitionSystem {
           reachedStates.add(resultingState);
           executedTransition.markReachedNewValue();
         }
+        allReachedState.add(resultingState);
       }
       this.transitions.getOrDefault(currentDepth, new ArrayList<>())
               .add(executedTransition);
@@ -226,15 +228,19 @@ public class TransitionSystem {
   }
 
   private boolean hasNewStates(int depth) {
-    List<SymbolicState> potentialNewState = 
-            this.states.getOrDefault(depth, new ArrayList<>());
-    if(potentialNewState.isEmpty()){
-      return false;
-    }
-    if(potentialNewState.size() == 1 
-            && potentialNewState.get(0) == errorState){
-      return false;
-    }
-    return true;
+//    List<SymbolicState> potentialNewState = 
+//            this.newStates.getOrDefault(depth, new ArrayList<>());
+//    if(potentialNewState.isEmpty()){
+//      return false;
+//    }
+//    if(potentialNewState.size() == 1 
+//            && potentialNewState.get(0) == errorState){
+//      return false;
+//    }
+    return !this.newStates.getOrDefault(depth, new ArrayList<>()).isEmpty();
+  }
+
+  public SymbolicState getErrorState() {
+    return this.errorState;
   }
 }

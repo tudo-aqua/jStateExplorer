@@ -1,7 +1,6 @@
 package gov.nasa.jstateexplorer.newTransitionSystem;
 
 import gov.nasa.jstateexplorer.newTransitionSystem.helper.RenameUtils;
-import gov.nasa.jpf.constraints.api.ConstraintSolver;
 import gov.nasa.jpf.constraints.api.ConstraintSolver.Result;
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Variable;
@@ -9,8 +8,6 @@ import gov.nasa.jpf.constraints.expressions.NumericBooleanExpression;
 import gov.nasa.jpf.constraints.expressions.NumericComparator;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import gov.nasa.jstateexplorer.SolverInstance;
-import gov.nasa.jstateexplorer.datastructures.NameMap;
-import gov.nasa.jstateexplorer.datastructures.VariableReplacementMap;
 import gov.nasa.jstateexplorer.newDatastructure.SymbolicState;
 import gov.nasa.jstateexplorer.newTransitionSystem.helper.TransitionLabelHelper;
 import java.util.ArrayList;
@@ -31,7 +28,7 @@ public class TransitionLabel {
 
   private ArrayList<Expression<Boolean>> preConditionConstraints;
   private HashMap<Variable, Expression<Boolean>> effectConstraints;
-
+  private ArrayList<Transition> executingTransition;
   private boolean errorTransititonLabel;
 
   public TransitionLabel(){
@@ -40,6 +37,7 @@ public class TransitionLabel {
     this.preConditionConstraints = new ArrayList<>();
     this.effectConstraints = new HashMap<>();
     this.errorTransititonLabel = false;
+    this.executingTransition = new ArrayList<>();
   }
 
   public TransitionLabel(String name){
@@ -52,8 +50,10 @@ public class TransitionLabel {
     this.variables.addAll(stateVariables);
   }
 
-  public boolean correctInstantiated(){
-    return false;
+  public void addExecutingTransition(Transition transition){
+    if(transition != null){
+      this.executingTransition.add(transition);
+    }
   }
 
   public Expression<Boolean> getEffectForVariable(Variable var){
@@ -63,7 +63,6 @@ public class TransitionLabel {
         returnEffect = this.effectConstraints.get(var);
         //For the precondition must all parts containing
         //any effect variable be included. 
-        System.out.println("REturn Effect: " + returnEffect.toString());
         Expression relevantPrecondition = 
                 createRelevantPrecondition(
                         ExpressionUtil.freeVariables(returnEffect),
@@ -194,8 +193,6 @@ public class TransitionLabel {
       throw new RuntimeException(
             "Cannot decide on Precondition, therefore no answer is posisble!");
     }
-    System.out.println("Expression: " + expr);
-    System.out.println("Result: " + res);
     return res == Result.SAT;
   }
 
@@ -219,5 +216,9 @@ public class TransitionLabel {
       effect = ExpressionUtil.and(effect, currentValue);
     }
     return effect;
+  }
+
+  public boolean isExecuted() {
+    return !this.executingTransition.isEmpty();
   }
 }

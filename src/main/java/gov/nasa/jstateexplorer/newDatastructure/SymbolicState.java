@@ -8,6 +8,7 @@ import gov.nasa.jpf.constraints.expressions.NumericComparator;
 import gov.nasa.jpf.constraints.types.TypeContext;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import gov.nasa.jstateexplorer.newTransitionSystem.Transition;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +27,8 @@ public class SymbolicState extends HashMap<Variable<?>, Expression<Boolean>>{
   
   public SymbolicState(){
     super();
+    this.incomingTransitions = new ArrayList<>();
+    this.outgoingTransitions = new ArrayList<>();
   }
 
   public SymbolicState(Collection<Variable<?>> stateVariables,
@@ -61,11 +64,11 @@ public class SymbolicState extends HashMap<Variable<?>, Expression<Boolean>>{
   }
 
   public boolean hasOutgoingTransitions(){
-    return this.outgoingTransitions.isEmpty();
+    return !this.outgoingTransitions.isEmpty();
   }
 
   public boolean hasIncomingTransitions() {
-    return this.incomingTransitions.isEmpty();
+    return !this.incomingTransitions.isEmpty();
   }
   public Expression<Boolean> toExpression() {
     Expression expr = null;
