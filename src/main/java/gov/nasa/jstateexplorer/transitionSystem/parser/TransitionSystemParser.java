@@ -22,11 +22,12 @@ import org.antlr.runtime.RecognitionException;
 public class TransitionSystemParser {
 
 
-  boolean declaration, precondition, newTransition, effect, transitionParameter;
-  int count;
-  TransitionLabel currentTransition;
-  TransitionSystem system;
-  ParserUtil jConstraintParser;
+  private boolean declaration, precondition, 
+          newTransition, effect, transitionParameter, init;
+  private int count;
+  private TransitionLabel currentTransition;
+  private TransitionSystem system;
+  private ParserUtil jConstraintParser;
   
   /*
    *A few Symbols are required to define a TransitionSystem in a File.
@@ -37,6 +38,7 @@ public class TransitionSystemParser {
   public static final String variableSymbol = "VARIABLES";
   public static final String effectSymbol = "EFFECT";
   public static final String transitionSymbol = "TRANSITION";
+  public static final String initValueSymbol = "INIT";
   public static String errorSymbol = "ERROR";
 
   public TransitionSystemParser(){
@@ -81,6 +83,7 @@ public class TransitionSystemParser {
     this.newTransition = false;
     this.transitionParameter = false;
     this.effect = false;
+    this.init = false;
   }
 
   private void parseEffectLine(String line) 
@@ -89,13 +92,8 @@ public class TransitionSystemParser {
       String effectedVariableName = 
               TransitionSystemParserHelper.extractEffectedVariableName(line);
       if(this.system.hasStateVariableWithName(effectedVariableName)){
-        Collection<Variable<?>> expectedVariables = 
-                collectExpectedVariablesInEffect(effectedVariableName);
-        String effectString = TransitionSystemParserHelper.extractEffect(line);
-        Expression<Boolean> effect = 
-                ParserUtil.parseLogical(
-                        effectString, getTypeContext(), expectedVariables);
-        this.currentTransition.addEffect(effectedVariableName, effect);
+        this.currentTransition.addEffect(effectedVariableName,
+                extractExpression(effectedVariableName, line));
       }else{
         throw new TransitionSystemParserError(line,
                 "Expected that modified Variable: " 
@@ -160,6 +158,10 @@ public class TransitionSystemParser {
         parsedEffectSymbol();
         return;
       }
+      if(uppercaseLine.startsWith(TransitionSystemParser.initValueSymbol)) {
+         parsedInitSymbol();
+         return;
+      }
       if(this.precondition){
         parsePreconditionLine(line);
         return;
@@ -174,6 +176,10 @@ public class TransitionSystemParser {
       }
       if(this.transitionParameter){
         parseParameterLine(line);
+        return;
+      }
+      if(this.init){
+        parseInitLine(line);
       }
   }
 
@@ -211,9 +217,11 @@ public class TransitionSystemParser {
           String effectedVariableName) {
     Variable oldVar = this.system.getStateVariableByName(effectedVariableName);
     Collection<Variable<?>> expectedVariables = this.system.getStateVariables();
-    Collection<Variable<?>> parameterVariables =
-            this.currentTransition.getParameterVariables();
-    expectedVariables.addAll(parameterVariables);
+    if(this.currentTransition != null){
+      Collection<Variable<?>> parameterVariables =
+              this.currentTransition.getParameterVariables();
+      expectedVariables.addAll(parameterVariables);
+    }
     Variable primeVar = 
             new Variable(oldVar.getType(), effectedVariableName +"'");
     expectedVariables.add(primeVar);
@@ -255,5 +263,29 @@ public class TransitionSystemParser {
     for(Variable parameter: parameters){
       this.currentTransition.addParameterVariable(parameter);
     }
+  }
+
+  private void parsedInitSymbol() {
+    setToDefault();
+    this.init = true;
+  }
+
+  private Expression extractExpression(
+          String effectedVariableName, String line)
+          throws RecognitionException{
+    Collection<Variable<?>> expectedVariables = 
+                collectExpectedVariablesInEffect(effectedVariableName);
+    String effectString = TransitionSystemParserHelper.extractEffect(line);
+    Expression<Boolean> effect = 
+                ParserUtil.parseLogical(
+                        effectString, getTypeContext(), expectedVariables);
+    return effect;
+  }
+
+  private void parseInitLine(String line) throws RecognitionException {
+    String effectedVariableName = 
+              TransitionSystemParserHelper.extractEffectedVariableName(line);
+    this.system.addInitValue(effectedVariableName,
+            extractExpression(effectedVariableName, line));
   }
 }
