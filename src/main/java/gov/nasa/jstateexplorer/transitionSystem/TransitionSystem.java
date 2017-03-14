@@ -163,7 +163,6 @@ public class TransitionSystem<T extends TransitionHelper> {
     }
     return trans;
   }
-
   public String completeToString() {
     String transitionSystem = toString();
     List<Transition> okPaths = getConsideredOkTransitions();
