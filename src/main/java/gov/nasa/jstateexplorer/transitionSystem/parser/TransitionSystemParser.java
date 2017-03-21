@@ -6,6 +6,7 @@ import gov.nasa.jpf.constraints.parser.ParserUtil;
 import gov.nasa.jpf.constraints.types.TypeContext;
 import gov.nasa.jstateexplorer.newTransitionSystem.TransitionLabel;
 import gov.nasa.jstateexplorer.newTransitionSystem.TransitionSystem;
+import gov.nasa.jstateexplorer.newTransitionSystem.profiling.ProfiledTransitionSystem;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -48,6 +49,11 @@ public class TransitionSystemParser {
     this.currentTransition = null;
     this.count = 0;
     
+  }
+
+  TransitionSystemParser(boolean profilingEnabled) {
+    this();
+    this.system = new ProfiledTransitionSystem();
   }
   
   public TransitionSystem parseString(String input) throws RecognitionException {

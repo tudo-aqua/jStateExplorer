@@ -13,6 +13,7 @@ import gov.nasa.jstateexplorer.SolverInstance;
 import gov.nasa.jstateexplorer.newDatastructure.SymbolicState;
 import gov.nasa.jstateexplorer.newTransitionSystem.helper.ExpressionQuantifier;
 import gov.nasa.jstateexplorer.newTransitionSystem.helper.TransitionSystemHelper;
+import gov.nasa.jstateexplorer.newTransitionSystem.profiling.ProfiledTransitionLabel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -64,6 +65,9 @@ public class TransitionSystem {
     return new ArrayList<>(this.transitionLabels);
   }
 
+  protected void setTransitionLabels(List<TransitionLabel> transitionLabels) {
+    this.transitionLabels = new ArrayList<>(transitionLabels);
+  }
   public boolean hasStateVariableWithName(String effectedVariableName) {
     for(Variable var: this.stateVariables){
       if(var.getName().equalsIgnoreCase(effectedVariableName)){
@@ -104,6 +108,7 @@ public class TransitionSystem {
       setInitState(initState);
     }
   }
+  
   public SymbolicState getInitState() {
     if(this.newStates.containsKey(0)){
       List<SymbolicState> initStates = this.newStates.get(0);
@@ -124,21 +129,21 @@ public class TransitionSystem {
     return --depth;
   }
 
-  void unrollToDepth(int depth) {
+  public void unrollToDepth(int depth) {
     for(int i = 1; i <= depth; i++){
       unrollIteration(i);
     }
   }
 
-  List<SymbolicState> getStatesNewInDepth(int i) {
+  public List<SymbolicState> getStatesNewInDepth(int i) {
     return new ArrayList<>(this.newStates.getOrDefault(i, new ArrayList<>()));
   }
 
-  List<Transition> getTransitionsOfIteration(int i) {
+  public List<Transition> getTransitionsOfIteration(int i) {
     return this.transitions.getOrDefault(i, new ArrayList<>());
   }
 
-  private void unrollIteration(int currentDepth) {
+  protected void unrollIteration(int currentDepth) {
     this.newStates.put(currentDepth, new ArrayList<>());
     this.allStates.put(currentDepth, new ArrayList<>());
     this.transitions.put(currentDepth, new ArrayList<>());
@@ -156,7 +161,7 @@ public class TransitionSystem {
     }
   }
 
-  private boolean isNewValueInState(SymbolicState resultingState) {
+  protected boolean isNewValueInState(SymbolicState resultingState) {
     SolverInstance solver = SolverInstance.getInstance();
     Expression newStateExpression = resultingState.toExpression();
     Expression reachedExpression = 
@@ -188,7 +193,7 @@ public class TransitionSystem {
     return new TypeContext(true);
   }
 
-  private boolean processTransitionLabelOnState(TransitionLabel label,
+  protected boolean processTransitionLabelOnState(TransitionLabel label,
           SymbolicState state, int currentDepth) {
     if(label.isEnabledOnState(state)){
       //This is an execution of an TransitionLabel and therefore a
@@ -258,4 +263,5 @@ public class TransitionSystem {
       }
     }
   }
+
 }

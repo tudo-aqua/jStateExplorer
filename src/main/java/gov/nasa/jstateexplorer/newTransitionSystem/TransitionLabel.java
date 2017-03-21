@@ -56,6 +56,17 @@ public class TransitionLabel {
     }
   }
 
+  public HashMap<Variable, Expression<Boolean>> getEffectConstraints(){
+    return new HashMap<>(this.effectConstraints);
+  }
+
+  protected void setEffectConstraints(
+          HashMap<Variable, Expression<Boolean>> constaints){
+    if(constaints !=  null){
+      this.effectConstraints = new HashMap<>(constaints);
+    }
+  }
+
   public Expression<Boolean> getEffectForVariable(Variable var){
     if(this.variables.contains(var) && !this.parameterVariables.contains(var)) {
       Expression returnEffect = null;
@@ -102,6 +113,14 @@ public class TransitionLabel {
     addVariable(var);
   }
 
+  public List<Expression<Boolean>> getPreconditionParts(){
+    return new ArrayList<>(this.preConditionConstraints);
+  }
+
+  protected void setPreconditionParts(List<Expression<Boolean>> preconditions) {
+    this.preConditionConstraints = new ArrayList<>(preconditions);
+  }
+  
   public void addPrecondition(Expression preconditionPart){
     this.preConditionConstraints.add(preconditionPart);
   }
@@ -132,6 +151,12 @@ public class TransitionLabel {
 
   public List<Variable<?>> getParameterVariables() {
     return new ArrayList(this.parameterVariables);
+  }
+
+  protected void setParameterVariables(List<Variable<?>> parameters) {
+    if(parameters != null){
+      this.parameterVariables = new ArrayList<>(parameters);
+    }
   }
 
   private Expression createRelevantPrecondition(
@@ -224,5 +249,29 @@ public class TransitionLabel {
 
   public boolean isExecuted() {
     return !this.executingTransition.isEmpty();
+  }
+
+  public Collection<Variable<?>> getVariables(){
+    return new HashSet<>(this.variables);
+  }
+
+  @Override
+  public String toString(){
+    StringBuilder stringRep = new StringBuilder();
+    stringRep.append("TransitionLabel: " + this.name + "\n");
+    stringRep.append("Precondition:\n");
+    for(Expression preCondition: this.preConditionConstraints){
+      stringRep.append(preCondition.toString() + "\n");
+    }
+    stringRep.append("EFFECT:\n");
+    for(Variable key: this.effectConstraints.keySet()){
+      stringRep.append(key.getName() + ": ");
+      stringRep.append(this.effectConstraints.get(key).toString());
+      stringRep.append("\n");
+    }
+    if(isError()){
+      stringRep.append("ERROR");
+    }
+    return stringRep.toString();
   }
 }
