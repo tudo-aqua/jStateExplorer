@@ -39,6 +39,7 @@ public class TransitionSystemParser {
   public static final String variableSymbol = "VARIABLES";
   public static final String effectSymbol = "EFFECT";
   public static final String transitionSymbol = "TRANSITION";
+  public static final String constructorSymbol = "CONSTRUCTOR";
   public static final String initValueSymbol = "INIT";
   public static String errorSymbol = "ERROR";
 
@@ -107,7 +108,7 @@ public class TransitionSystemParser {
                   + " is a state variable,\n"
                   + "but could not find the corresponding state variable.");
       }
-    }else if(line.startsWith(TransitionSystemParser.errorSymbol)){
+    }else if(line.toUpperCase().startsWith(TransitionSystemParser.errorSymbol)){
       this.currentTransition.markAsErrorTransitionLabel();
     }
     else{
@@ -145,6 +146,10 @@ public class TransitionSystemParser {
       if(uppercaseLine.startsWith(TransitionSystemParser.variableSymbol)) {
           parsedVariableSymbol();
           return;
+      }
+      if(uppercaseLine.startsWith(TransitionSystemParser.constructorSymbol)) {
+        parsedConstructorSymbol(line);
+        return;
       }
       if(uppercaseLine.startsWith(TransitionSystemParser.transitionSymbol)) {
         parsedTransitionSymbol(line);
@@ -293,5 +298,10 @@ public class TransitionSystemParser {
               TransitionSystemParserHelper.extractEffectedVariableName(line);
     this.system.addInitValue(effectedVariableName,
             extractExpression(effectedVariableName, line));
+  }
+
+  private void parsedConstructorSymbol(String line) {
+    parsedTransitionSymbol(line);
+    this.currentTransition.markAsConstructor();
   }
 }

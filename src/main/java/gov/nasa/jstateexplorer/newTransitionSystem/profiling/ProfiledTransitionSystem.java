@@ -128,7 +128,7 @@ public class ProfiledTransitionSystem extends TransitionSystem{
   public String completeResultAsString() {
     StringBuilder profile = new StringBuilder();
     profile.append("Total Time for unrolling system: " 
-            + lastUnrollmentDuration + "\n");
+            + lastUnrollmentDuration + " ms\n");
     profile.append("----------------------------------------------\n");
     profile.append("Time for each iteration step: \n");
     for(Integer key: iterationTime.keySet()){
@@ -150,13 +150,13 @@ public class ProfiledTransitionSystem extends TransitionSystem{
     profile.append("----------------------------------------------\n");
     profile.append("Time spend on transition label \n");
     for(TransitionLabel label: labelTime.keySet()){
-      profile.append("Label: " + label.getName()
+      profile.append("Label: " + label.getUniqueName()
               + " duration: " + labelTime.get(label) + " ms\n");
     }
     profile.append("----------------------------------------------\n");
     profile.append("Time spend on transition label for guard test: \n");
     for(TransitionLabel label: labelGuardTime.keySet()){
-      profile.append("Label: " + label.getName()
+      profile.append("Label: " + label.getUniqueName()
               + " duration: " + labelGuardTime.get(label) + " ms\n");
     }
     profile.append("----------------------------------------------\n");

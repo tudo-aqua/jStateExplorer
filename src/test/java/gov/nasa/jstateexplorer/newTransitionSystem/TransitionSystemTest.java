@@ -108,7 +108,8 @@ public class TransitionSystemTest {
     TransitionSystem system = parser.parseString(inputSystem);
     system.initalize();
     
-    SymbolicState initState = system.getInitState();
+    assertEquals(system.getInitState().size(), 1);
+    SymbolicState initState = system.getInitState().get(0);
     
     List<SymbolicState> lastReached = system.getStatesNewInDepth(0);
     assertFalse(lastReached.isEmpty());
@@ -314,8 +315,9 @@ public class TransitionSystemTest {
     SymbolicState initState = new SymbolicState();
     initState.setToStateVariables(stateVariables, new TypeContext(true));
     
-    system.setInitState(initState);
-    SymbolicState receivedInitState = system.getInitState();
+    system.addInitState(initState);
+    assertEquals(system.getInitState().size(), 1);
+    SymbolicState receivedInitState = system.getInitState().get(0);
     assertNotNull(receivedInitState);
     
     Constant c0 = new Constant(BuiltinTypes.SINT32, 0);
@@ -324,7 +326,7 @@ public class TransitionSystemTest {
     Expression valueB = 
             new NumericBooleanExpression(x, NumericComparator.EQ, c0);
     Expression expectedInitExpression = 
-            new PropositionalCompound(valueB, LogicalOperator.AND, valueA);
+            new PropositionalCompound(valueA, LogicalOperator.AND, valueB);
     assertEquals(receivedInitState.toExpression(), expectedInitExpression);
   }
   

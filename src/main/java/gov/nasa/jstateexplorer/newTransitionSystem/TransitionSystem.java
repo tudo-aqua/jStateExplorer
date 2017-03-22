@@ -3,7 +3,6 @@ package gov.nasa.jstateexplorer.newTransitionSystem;
 import gov.nasa.jpf.constraints.api.ConstraintSolver;
 import gov.nasa.jpf.constraints.api.ConstraintSolver.Result;
 import gov.nasa.jpf.constraints.api.Expression;
-import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.expressions.LogicalOperator;
 import gov.nasa.jpf.constraints.expressions.Negation;
@@ -11,9 +10,7 @@ import gov.nasa.jpf.constraints.expressions.PropositionalCompound;
 import gov.nasa.jpf.constraints.types.TypeContext;
 import gov.nasa.jstateexplorer.SolverInstance;
 import gov.nasa.jstateexplorer.newDatastructure.SymbolicState;
-import gov.nasa.jstateexplorer.newTransitionSystem.helper.ExpressionQuantifier;
 import gov.nasa.jstateexplorer.newTransitionSystem.helper.TransitionSystemHelper;
-import gov.nasa.jstateexplorer.newTransitionSystem.profiling.ProfiledTransitionLabel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +26,7 @@ public class TransitionSystem {
   private HashMap<Integer, List<SymbolicState>> allStates;
   private HashMap<Integer, List<Transition>> transitions;
   private SymbolicState errorState;
+  private boolean constructorAllowed;
   
   public TransitionSystem(){
     this.stateVariables = new ArrayList<>();
@@ -36,8 +34,9 @@ public class TransitionSystem {
     this.newStates = new HashMap<>();
     this.allStates = new HashMap<>();
     this.transitions = new HashMap<>();
-    errorState = new SymbolicState();
+    this.errorState = new SymbolicState();
     errorState.markAsErrorState();
+    this.constructorAllowed = true;
   }
 
   public List<Variable<?>> getStateVariables(){
@@ -95,26 +94,50 @@ public class TransitionSystem {
     return null;
   }
 
-  void setInitState(SymbolicState initState) {
-    ArrayList<SymbolicState> initStates = new ArrayList<>();
+  void addInitState(SymbolicState initState) {
+    List<SymbolicState> initStates = 
+            this.newStates.getOrDefault(0, new ArrayList<>());
     initStates.add(initState);
     this.newStates.put(0, initStates);
+    this.allStates.put(0, new ArrayList<>(initStates));
   }
 
   public void initalize() {
     if(getInitState() == null){
+      boolean foundConstructor = false;
       SymbolicState initState = 
               new SymbolicState(this.stateVariables, new TypeContext(true));
-      setInitState(initState);
+      List<SymbolicState> newList = new ArrayList<>();
+      newList.add(initState);
+      this.newStates.put(-1, newList);
+      if(this.constructorAllowed) {
+        this.transitions.put(0, new ArrayList<>());
+        for(TransitionLabel label: this.transitionLabels){
+          if(label.isConstructor()){
+            foundConstructor = true;
+            Transition executeConstructor = new Transition();
+            SymbolicState endState = 
+                    label.applyOnState(initState, executeConstructor.getID());
+            executeConstructor.addLabel(label);
+            executeConstructor.setStart(initState);
+            executeConstructor.setEnd(endState);
+            this.transitions.get(0).add(executeConstructor);
+            addInitState(endState);
+          }
+        }
+        if(!foundConstructor){
+          addInitState(initState);
+        }
+      }else{
+        addInitState(initState);
+      }
     }
   }
   
-  public SymbolicState getInitState() {
+  public List<SymbolicState> getInitState() {
     if(this.newStates.containsKey(0)){
       List<SymbolicState> initStates = this.newStates.get(0);
-      if(initStates.size() == 1){
-        return initStates.get(0);
-      }
+        return new ArrayList<>(initStates);
     }
     return null;
   }
@@ -156,7 +179,9 @@ public class TransitionSystem {
         continue;
       }
       for(TransitionLabel label: this.transitionLabels){
-        processTransitionLabelOnState(label, state, currentDepth);
+        if(!label.isConstructor()){
+          processTransitionLabelOnState(label, state, currentDepth);
+        }
       }
     }
   }
@@ -252,10 +277,20 @@ public class TransitionSystem {
   }
 
   public void addInitValue(String variableName, Expression value) {
-    SymbolicState init = getInitState();
-    if(init == null){
+    List<SymbolicState> initCandidates = 
+            this.newStates.getOrDefault(0, new ArrayList<>());
+    this.constructorAllowed = false;
+    if(initCandidates.isEmpty()){
       initalize();
-      init = getInitState();
+      initCandidates = this.newStates.get(0);
+    }
+    SymbolicState init = null;
+    if(initCandidates.size() == 1) {
+      init = initCandidates.get(0);
+    }else{
+      throw new RuntimeException(
+              "You can not hand in constructors and set init values. \n"
+                      + " Decide by your own, but withdrawal one of them.");
     }
     for(Variable stateVar: this.stateVariables){
       if(stateVar.getName().equals(variableName)){
@@ -263,5 +298,31 @@ public class TransitionSystem {
       }
     }
   }
-
+  
+  @Override
+  public String toString(){
+    StringBuilder transitionSystem = new StringBuilder();
+    transitionSystem.append("TRANSITION SYSTEM: \n");
+    for(Integer depth: this.allStates.keySet()){
+      List<SymbolicState> statesInDepth = this.allStates.get(depth);
+      transitionSystem.append("States in Depth: ").append(depth).append("\n");
+      for(SymbolicState state: statesInDepth){
+        transitionSystem.append("state: ").append(state.getID()).append("\n");
+        transitionSystem.append(state.toString()).append("\n");
+      }
+      transitionSystem.append("Transitions in Depth: ");
+      transitionSystem.append(depth).append("\n");
+      for(Transition transition: this.getTransitionsOfIteration(depth)){
+        transitionSystem.append("Transition: ").append(transition.getID());
+        transitionSystem.append("\n");
+        transitionSystem.append("s: ");
+        transitionSystem.append(transition.getStartState().getID());
+        transitionSystem.append(" e: ");
+        transitionSystem.append(transition.getReachedState().getID());
+        transitionSystem.append("\n");
+      }
+      
+    }
+    return transitionSystem.toString();
+  }
 }

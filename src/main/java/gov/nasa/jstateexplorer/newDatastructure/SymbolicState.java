@@ -20,15 +20,23 @@ import java.util.List;
  */
 public class SymbolicState extends HashMap<Variable<?>, Expression<Boolean>>{
 
+  private static long counter = 0;
   private boolean isErrorState;
+  private String id;
   
   private List<Transition> incomingTransitions, outgoingTransitions;
   
+  public synchronized static String getNextStateId() {
+    String nextId = "s_" + SymbolicState.counter;
+    ++counter;
+    return nextId;
+  }
   
   public SymbolicState(){
     super();
     this.incomingTransitions = new ArrayList<>();
     this.outgoingTransitions = new ArrayList<>();
+    this.id = SymbolicState.getNextStateId();
   }
 
   public SymbolicState(Collection<Variable<?>> stateVariables,
@@ -84,5 +92,17 @@ public class SymbolicState extends HashMap<Variable<?>, Expression<Boolean>>{
 
   public boolean isError() {
     return this.isErrorState;
+  }
+  
+  public String getID(){
+    return this.id;
+  }
+  
+  public List<Transition> getIncommingTransitions() {
+    return new ArrayList<>(this.incomingTransitions);
+  }
+
+  public List<Transition> getOutgoingTransitions() {
+    return new ArrayList<>(this.outgoingTransitions);
   }
 }

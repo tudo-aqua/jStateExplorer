@@ -31,6 +31,12 @@ public class ProfiledTransitionLabel extends TransitionLabel{
     super.setParameterVariables(label.getParameterVariables());
     super.setEffectConstraints(label.getEffectConstraints());
     super.setPreconditionParts(label.getPreconditionParts());
+    if(label.isError()){
+      super.markAsErrorTransitionLabel();
+    }
+    if(label.isConstructor()){
+      super.markAsConstructor();
+    }
   }
 
   @Override

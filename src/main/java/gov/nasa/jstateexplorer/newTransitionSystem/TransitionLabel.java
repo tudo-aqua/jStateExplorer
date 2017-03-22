@@ -22,15 +22,24 @@ import java.util.List;
  * @author mmuesly(Malte Mues)
  */
 public class TransitionLabel {
+  private static long counter = 0L;
+  
   private String name = "";
+  private long id;
   private Set<Variable<?>> variables;
   private List<Variable<?>> parameterVariables;
 
   private ArrayList<Expression<Boolean>> preConditionConstraints;
   private HashMap<Variable, Expression<Boolean>> effectConstraints;
   private ArrayList<Transition> executingTransition;
-  private boolean errorTransititonLabel;
+  private boolean errorTransititonLabel,isConstructor;
 
+  public synchronized static long getNextID(){
+    long toReturn = TransitionLabel.counter;
+    ++TransitionLabel.counter;
+    return toReturn;
+  }
+  
   public TransitionLabel(){
     this.variables = new HashSet<>();
     this.parameterVariables = new ArrayList<>();
@@ -38,6 +47,8 @@ public class TransitionLabel {
     this.effectConstraints = new HashMap<>();
     this.errorTransititonLabel = false;
     this.executingTransition = new ArrayList<>();
+    this.id = getNextID();
+    this.isConstructor = false;
   }
 
   public TransitionLabel(String name){
@@ -56,6 +67,9 @@ public class TransitionLabel {
     }
   }
 
+  public List<Transition> getExecutingTransitions() {
+    return new ArrayList<>(this.executingTransition);
+  }
   public HashMap<Variable, Expression<Boolean>> getEffectConstraints(){
     return new HashMap<>(this.effectConstraints);
   }
@@ -135,6 +149,10 @@ public class TransitionLabel {
     return this.name;
   }
 
+  public String getUniqueName(){
+    return this.name + "_" + this.id;
+  }
+
   public void addEffect(String effectedVariableName, Expression<Boolean> effect) {
     Variable effectedVar = findVariable(effectedVariableName);
     addEffect(effectedVar, effect);
@@ -209,6 +227,13 @@ public class TransitionLabel {
     this.errorTransititonLabel = true;
   }
 
+  public boolean isConstructor() {
+    return this.isConstructor;
+  }
+  
+  public void markAsConstructor() {
+    this.isConstructor = true;
+  }
   public boolean isEnabledOnState(SymbolicState state) {
     Expression expr = ExpressionUtil.and(state.toExpression(),
     this.getPrecondition());
@@ -258,14 +283,18 @@ public class TransitionLabel {
   @Override
   public String toString(){
     StringBuilder stringRep = new StringBuilder();
-    stringRep.append("TransitionLabel: " + this.name + "\n");
+    stringRep.append("TransitionLabel: ");
+    stringRep.append(this.name);
+    stringRep.append(" unique: ");
+    stringRep.append(getUniqueName());
+    stringRep.append("\n");
     stringRep.append("Precondition:\n");
     for(Expression preCondition: this.preConditionConstraints){
-      stringRep.append(preCondition.toString() + "\n");
+      stringRep.append(preCondition.toString()).append("\n");
     }
     stringRep.append("EFFECT:\n");
     for(Variable key: this.effectConstraints.keySet()){
-      stringRep.append(key.getName() + ": ");
+      stringRep.append(key.getName()).append(": ");
       stringRep.append(this.effectConstraints.get(key).toString());
       stringRep.append("\n");
     }

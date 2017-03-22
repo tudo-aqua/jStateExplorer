@@ -50,7 +50,8 @@ public class TransitionSystemParserInitalizationTest {
     TransitionSystemParser parser = new TransitionSystemParser();
     TransitionSystem system = parser.parseString(inputSystem);
     system.initalize();
-    SymbolicState init = system.getInitState();
+    assertEquals(system.getInitState().size(), 1);
+    SymbolicState init = system.getInitState().get(0);
     
     Expression xValue = 
             new NumericBooleanExpression(x, NumericComparator.EQ, c5);
