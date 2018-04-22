@@ -180,7 +180,7 @@ public class TransitionSystemTest {
     
     int fixPointDepth = system.unrollToFixPoint();
     //system.unrollToDepth(10);
-    assertEquals(fixPointDepth, 3);
+    assertEquals(fixPointDepth, 4);
     assertEquals(system.getStatesNewInDepth(2).size(), 1);
     assertEquals(system.getStatesNewInDepth(3).size(), 1);
     assertEquals(system.getStatesNewInDepth(4).size(), 0);
@@ -326,7 +326,7 @@ public class TransitionSystemTest {
     Expression valueB = 
             new NumericBooleanExpression(x, NumericComparator.EQ, c0);
     Expression expectedInitExpression = 
-            new PropositionalCompound(valueA, LogicalOperator.AND, valueB);
+            new PropositionalCompound(valueB, LogicalOperator.AND, valueA);
     assertEquals(receivedInitState.toExpression(), expectedInitExpression);
   }
   

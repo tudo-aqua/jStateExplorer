@@ -66,7 +66,7 @@ public class TransitionSystemWithDependingVariablesTest {
     system.initalize();
     int depth = system.unrollToFixPoint();
     
-    assertEquals(depth, 3);
+    assertEquals(depth, 4);
     
     TransitionLabel label = system.getTransitionLabelByName("t5");
     

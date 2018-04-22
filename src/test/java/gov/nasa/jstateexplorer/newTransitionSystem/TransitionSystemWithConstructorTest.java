@@ -51,7 +51,7 @@ public class TransitionSystemWithConstructorTest {
     system.initalize();
     int depth = system.unrollToFixPoint();
     
-    assertEquals(depth, 3);
+    assertEquals(depth, 4);
 
     List<SymbolicState> initStates = system.getInitState();
     assertEquals(initStates.size(), 2);

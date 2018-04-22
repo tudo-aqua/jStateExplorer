@@ -74,7 +74,7 @@ public class TransitionSystemWithParameterTest {
     List<SymbolicState> allStatesInDepth1 = system.getAllStatesInDepth(1);
     assertTrue(allStatesInDepth1.contains(system.getErrorState()));
     
-    assertEquals(depth, 1);
+    assertEquals(depth, 2);
     
     assertEquals(system.getStatesNewInDepth(1).size(), 2);
     List<Transition> transitionsInDepth1 = system.getTransitionsOfIteration(1);
@@ -137,7 +137,7 @@ public class TransitionSystemWithParameterTest {
     
     system.initalize();
     int depth = system.unrollToFixPoint();
-    assertEquals(depth, 2);
+    assertEquals(depth, 3);
 
     List<SymbolicState> newStatesInDepth1 = system.getStatesNewInDepth(2);
     assertEquals(newStatesInDepth1.size(), 1);
@@ -184,7 +184,7 @@ public class TransitionSystemWithParameterTest {
     
     system.initalize();
     int depth = system.unrollToFixPoint();
-    assertEquals(depth, 5);
+    assertEquals(depth, 6);
     
     List<SymbolicState> newStatesInDepth2 = system.getStatesNewInDepth(2);
     assertEquals(newStatesInDepth2.size(), 1);

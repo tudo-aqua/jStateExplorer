@@ -81,6 +81,7 @@ public class SearchEngine {
       depthSymbolic = executeSymbolicSearch(system, solver);
     }
     if(depthEnumerative != -1 && depthSymbolic != -1 && depthEnumerative != depthSymbolic){
+      //TODO: This test is not complete.
       String msg = "The enumerative Search and the symbolic Search don't reach the same result!";
       throw new IllegalStateException(msg);
     }else if(depthEnumerative != -1){
@@ -95,8 +96,8 @@ public class SearchEngine {
   private int executeEnumerativeSearch(TransitionSystem system,
           ConstraintSolver solver) {
     logger.info("Start enumerative search");
-    System.out.println("gov.nasa.jstateexplorer.SearchEngine.executeEnumerativeSearch()");
-    System.out.println("initValuation: " + system.getInitValuation());
+    logger.finest("gov.nasa.jstateexplorer.SearchEngine.executeEnumerativeSearch()");
+    logger.finest("initValuation: " + system.getInitValuation());
     TransitionHelper helper = new EnumerativeTransitionHelper();
     system.setHelper(helper);
     logger.info(system.toString());
