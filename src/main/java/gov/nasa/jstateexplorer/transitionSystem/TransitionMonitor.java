@@ -12,7 +12,7 @@ public class TransitionMonitor {
         
     }
     
-    public static boolean isRuning(){
+    public static boolean isRunning(){
         return runing;
     };
     

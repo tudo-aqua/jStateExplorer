@@ -93,7 +93,7 @@ public class TransitionSystem<T extends TransitionHelper> {
   public List<Transition> getConsideredOkTransitions() {
     ArrayList<Transition> returnList = new ArrayList<>();
     for (Transition t : transitions) {
-      if (t.isOk()) {
+      if (t.isOk() && !t.isError()) {
         if (t.isStutterTransition()) {
           continue;
         }
@@ -193,7 +193,7 @@ public class TransitionSystem<T extends TransitionHelper> {
 
   public SearchIterationImage applyOn(SearchIterationImage alreadyReachedStates) {
     TransitionMonitor.startRuning();
-      if (helper == null) {
+    if (helper == null) {
       throw new IllegalStateException("You must set a TransitionHelper for"
               + " the system, before you can use it.");
     }
@@ -202,7 +202,7 @@ public class TransitionSystem<T extends TransitionHelper> {
     SearchProfiler.startTransitionProfiler(alreadyReachedStates.getDepth());
     for (Transition t : transitions) {
       alreadyReachedStates = t.applyOn(alreadyReachedStates, helper);
-      if(!TransitionMonitor.isRuning()){
+      if(!TransitionMonitor.isRunning()){
           return alreadyReachedStates;
       }
     }
@@ -293,5 +293,9 @@ public class TransitionSystem<T extends TransitionHelper> {
     }
     result += ";";
     return result;
+  }
+  
+  public boolean shouldContinue(SearchIterationImage image){
+    return helper.shouldContinue(image);
   }
 }

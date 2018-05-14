@@ -92,12 +92,14 @@ public abstract class RegionUtil<V extends State<?>, T extends Region<?, V>> {
       stateRegion
               = bindParameters(stateRegion,
                       newStateVariables, Quantifier.EXISTS);
+      logger.finer("stateRegion: " + stateRegion);
+      logger.finer("notRegion: "+ notRegion);
       Expression testDiffState = ExpressionUtil.and(stateRegion, notRegion);
       long start = System.currentTimeMillis();
       Valuation val = new Valuation();
       logger.finest("Diff state for test: " + testDiffState.toString());
       ConstraintSolver.Result rs = solver.solve(testDiffState, val);
-      logger.finest("result" + ExpressionUtil.valuationToExpression(val));
+      logger.finest("result " + ExpressionUtil.valuationToExpression(val));
       long stop = System.currentTimeMillis();
       logger.finer("Time needed for difference: "
               + Long.toString(stop - start) + " in Millis");

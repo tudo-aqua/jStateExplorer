@@ -115,6 +115,7 @@ public class SymbolicTransitionHelper extends TransitionHelper {
     Variable oldVariable = entry.getVariable(),
             primeVariable = createPrimeVariable(oldVariable);
     Expression transitionEffekt = transition.getEffect(oldVariable);
+    
     Expression newValue = null;
     if(isTainted(transitionEffekt, prefix, oldVariable)){
       newValue
@@ -122,22 +123,23 @@ public class SymbolicTransitionHelper extends TransitionHelper {
                 ? (Expression) prefix.accept(replacementVisitor, replacements)
                 : prefix;
     }
-    List<NumericBooleanExpression> oldRestrictionsToKeep = new ArrayList<>();
-    Set<Variable<?>> possibleBound = 
-            ExpressionUtil.freeVariables(entry.getValue());
-    entry.getValue().accept(restrictionsVisitor, oldRestrictionsToKeep);
-    for (NumericBooleanExpression expr : oldRestrictionsToKeep) {
-      Set<Variable<?>> variables = ExpressionUtil.freeVariables(expr);
-      for (Variable var : variables) {
-        if ((!(var.getName().startsWith("uVarReplacement")))
-                && (!variables.contains(entry.getVariable()))
-                && possibleBound.contains(var)) {
-          newValue = (newValue != null) ? 
-                  ExpressionUtil.and(newValue, expr): expr;
-          break;
-        }
-      }
-    }
+//    List<NumericBooleanExpression> oldRestrictionsToKeep = new ArrayList<>();
+//    Set<Variable<?>> possibleBound = 
+//            ExpressionUtil.freeVariables(entry.getValue());
+    newValue = (newValue != null) ? 
+                  ExpressionUtil.and(newValue, entry.getValue()): entry.getValue();
+//    entry.getValue().accept(restrictionsVisitor, oldRestrictionsToKeep);
+//    for (NumericBooleanExpression expr : oldRestrictionsToKeep) {
+//      Set<Variable<?>> variables = ExpressionUtil.freeVariables(expr);
+//      for (Variable var : variables) {
+//        if ((!(var.getName().startsWith("uVarReplacement")))
+//                && (!variables.contains(entry.getVariable()))
+//                && possibleBound.contains(var)) {
+//          newValue = 
+//          break;
+//        }
+//      }
+//    }
     if (isStutterEffektForVariable(oldVariable, transitionEffekt)
             || transitionEffekt == null) {
       newValue = createStutterTransition(oldVariable,
@@ -151,6 +153,7 @@ public class SymbolicTransitionHelper extends TransitionHelper {
     }
     logger.finest("gov.nasa.jpf.psyco.search.transitionSystem."
             + "SymbolicTransitionHelper.executeTransitionOnEntry()");
+    logger.finest("Transition: " + transition.toStringWithId());
     logger.finest("primeVariable: " + primeVariable + " newValue: "
             + newValue + " oldValue: " + entry.getValue());
     return new SymbolicEntry(primeVariable, newValue);

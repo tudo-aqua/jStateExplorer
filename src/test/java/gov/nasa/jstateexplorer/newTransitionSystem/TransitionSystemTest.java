@@ -322,9 +322,9 @@ public class TransitionSystemTest {
     
     Constant c0 = new Constant(BuiltinTypes.SINT32, 0);
     Expression valueA = 
-            new NumericBooleanExpression(y, NumericComparator.EQ, c0);
-    Expression valueB = 
             new NumericBooleanExpression(x, NumericComparator.EQ, c0);
+    Expression valueB = 
+            new NumericBooleanExpression(y, NumericComparator.EQ, c0);
     Expression expectedInitExpression = 
             new PropositionalCompound(valueB, LogicalOperator.AND, valueA);
     assertEquals(receivedInitState.toExpression(), expectedInitExpression);

@@ -6,12 +6,8 @@ import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.api.ValuationEntry;
 import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.expressions.Constant;
-import gov.nasa.jpf.constraints.expressions.LogicalOperator;
 import gov.nasa.jpf.constraints.expressions.NumericBooleanExpression;
 import gov.nasa.jpf.constraints.expressions.NumericComparator;
-import gov.nasa.jpf.constraints.expressions.NumericCompound;
-import gov.nasa.jpf.constraints.expressions.NumericOperator;
-import gov.nasa.jpf.constraints.expressions.PropositionalCompound;
 import gov.nasa.jpf.constraints.solvers.ConstraintSolverFactory;
 import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jstateexplorer.datastructures.searchImage.SearchIterationImage;
@@ -25,11 +21,10 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import org.junit.Before;
-import org.junit.Test;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
+
+
 
 public class RegisterAssignmentTest {
   ConstraintSolver solver;
@@ -37,7 +32,7 @@ public class RegisterAssignmentTest {
   public RegisterAssignmentTest(){
   }
   
-  @Before
+  @BeforeTest
   public void setUp() {
     Properties conf = new Properties();
     conf.setProperty("symbolic.dp", "Z3");
@@ -57,6 +52,10 @@ public class RegisterAssignmentTest {
     logger.setLevel(Level.FINE);
     logger.info("start Test");
     logger.info(system.completeToString());
+    
+    System.out.println("gov.nasa.jstateexplorer.RegisterAssignmentTest.testRegisterAssignemnt()");
+    System.out.println("transition System: ");
+    System.out.println(system.toStringWithID());
     SearchIterationImage searchResult = SymbolicSearchEngine.
             symbolicBreadthFirstSearch(system, solver, 10, logger);
     logger.info("searchDone");

@@ -22,6 +22,7 @@ import gov.nasa.jstateexplorer.transitionSystem.TransitionHelper;
 import gov.nasa.jstateexplorer.transitionSystem.TransitionSystem;
 import gov.nasa.jstateexplorer.transitionSystem.TransitionSystemLoader;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -168,14 +169,16 @@ public class OldTransitionSystemTest {
   }
 
   @Test
-  public void transitionSystemTest3(){
+  public void transitionSystemTest3() throws IOException{
     TransitionSystem system = createTransitionSystem3();
     TransitionHelper symbolicHelper = new SymbolicTransitionHelper();
     system.setHelper(symbolicHelper);
+    System.out.println(system.toStringWithID());
     SearchIterationImage image = 
             SymbolicSearchEngine.symbolicBreadthFirstSearch(system,
                     solver, Integer.MIN_VALUE);
-    assertEquals(2, image.getDepth());
+    image.print(System.out);
+    assertEquals(image.getDepth(), 3);
     List<Transition> errorTransition = system.getConsideredErrorTransitions();
     for(Transition t: errorTransition){
       assertTrue(t.isReached());
@@ -188,7 +191,7 @@ public class OldTransitionSystemTest {
         }else{counter--;}
     }
     assertEquals(2, counter);
-    assertEquals(2, image.getReachableStates().size());
+    assertEquals(3, image.getReachableStates().size());
   }
 
   private TransitionSystem createTransitionSystem(){

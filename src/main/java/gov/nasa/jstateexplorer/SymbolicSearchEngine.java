@@ -16,6 +16,7 @@
 package gov.nasa.jstateexplorer;
 
 import gov.nasa.jpf.constraints.api.ConstraintSolver;
+import gov.nasa.jstateexplorer.datastructures.region.Region;
 import gov.nasa.jstateexplorer.datastructures.region.SymbolicRegion;
 import gov.nasa.jstateexplorer.datastructures.searchImage.SymbolicImage;
 import gov.nasa.jstateexplorer.transitionSystem.TransitionSystem;
@@ -76,11 +77,15 @@ public class SymbolicSearchEngine {
       SymbolicImage newImage = searchUtil.post(currentSearchState,
               transitionSystem);
       SymbolicRegion nextReachableStates = newImage.getNewStates();
+      logger.finer("gov.nasa.jstateexplorer.SymbolicSearchEngine.symbolicBreadthFirstSearch()");
+      logger.finer("nextReachableStates: \n");
+      logRegion(nextReachableStates);
       SearchProfiler.startDiffProfiler(newImage.getDepth());
       newRegion = regionUtil.difference(nextReachableStates,
               reachableRegion, solver);
       SearchProfiler.stopDiffProfieler(newImage.getDepth());
-
+      logger.finer("newRegion:\n");
+      logRegion(newRegion);
       reachableRegion = regionUtil.union(reachableRegion, newRegion);
 
       newImage.setReachableStates(reachableRegion);
@@ -94,6 +99,9 @@ public class SymbolicSearchEngine {
         currentSearchState.setDepth(Integer.MAX_VALUE);
         break;
       }
+      if(!transitionSystem.shouldContinue(currentSearchState)){
+        break;
+      }
     }
     return currentSearchState;
   }
@@ -102,6 +110,7 @@ public class SymbolicSearchEngine {
     Logger logger = Logger.getLogger("psyco");
     StringBuilder builder = new StringBuilder();
     try {
+      builder.append("gov.nasa.jstateexplorer.SymbolicSearchEngine.logState()\n");
       newImage.print(builder);
       logger.fine(builder.toString());
     } catch (IOException ex) {
@@ -122,6 +131,16 @@ public class SymbolicSearchEngine {
       logger.info("The Transition system seems to be finite.");
       logger.info("The search should terminate.");
       logger.info("");
+    }
+  }
+  
+  private static void logRegion(Region region){
+    try {
+      StringBuilder sb = new StringBuilder();
+      region.print(sb);
+      logger.finer(sb.toString());
+    } catch (IOException ex) {
+      Logger.getLogger(SymbolicSearchEngine.class.getName()).log(Level.SEVERE, null, ex);
     }
   }
 

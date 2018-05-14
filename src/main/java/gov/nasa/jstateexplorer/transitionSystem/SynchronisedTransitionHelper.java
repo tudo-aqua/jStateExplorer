@@ -30,13 +30,19 @@ public class SynchronisedTransitionHelper extends SymbolicTransitionHelper {
     if(transition.isError() && transition.isOk()){
         for (Iterator it = image.getPreviousNewStates().values().iterator(); it.hasNext();) {
             State state = (State) it.next();
-            if(super.satisfiesGuardCondition(state, transition, image.getDepth())){
+            logger.finer("gov.nasa.jstateexplorer.transitionSystem.SynchronisedTransitionHelper.applyTransition()");
+            logger.finer("transition: " + transition.toStringWithId());
+            logger.finer("state" + state.toExpression());
+            boolean satisfiabel = super.satisfiesGuardCondition(state, transition, image.getDepth());
+            logger.finer("guardCheck: " + satisfiabel);
+            if(satisfiabel){
               TransitionMonitor.stopRuning();
-              logger.info("gov.nasa.jstateexplorer.transitionSystem.SynchronisedTransitionHelper.applyTransition() -History");
-              logger.info(transition.toStringWithId());
-              logger.info("State: " + state.toExpression().toString());
+              logger.finer("gov.nasa.jstateexplorer.transitionSystem.SynchronisedTransitionHelper.applyTransition() -History");
+              logger.finer(transition.toStringWithId());
+              logger.finer("State: " + state.toExpression().toString());
               state.addToHistory(transition);
-              logger.info("History: " + state.getHistoryAsString());
+              logger.finer("History: " + state.getHistoryAsString());
+              logger.finer("TransitionMonitor: " + TransitionMonitor.isRunning());
               image.setHistoryForCE(state.getHistory());
               return image;
             }
@@ -45,5 +51,10 @@ public class SynchronisedTransitionHelper extends SymbolicTransitionHelper {
     }else{
         return super.applyTransition(image, transition);
     }
+  }
+  
+  @Override
+  public boolean shouldContinue(SearchIterationImage image){
+    return image.getHistoryForCE().isEmpty();
   }
 }

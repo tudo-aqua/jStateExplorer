@@ -93,4 +93,8 @@ public abstract class TransitionHelper {
     throw new IllegalStateException(
             "The solver result is not allowed to be null.");
   }
+  
+  public boolean shouldContinue(SearchIterationImage image) {
+    return true;
+  }
 }

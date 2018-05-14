@@ -82,6 +82,7 @@ public class Transition {
   public Transition(Expression guard, String errorMsg, String stackTrace, Map<Variable, Expression<Boolean>> effects, boolean ok, boolean error) {
     this(guard, errorMsg, stackTrace, ok, error);
     setEffects(effects);
+    calculateModified();
   }
   
   public Transition(Expression guard, String errorMsg, String stackTrace, Map<Variable, Expression<Boolean>> effects, boolean ok, boolean error, boolean constructor) {
@@ -116,7 +117,7 @@ public class Transition {
   }
 
   public Expression getEffect(Variable var) {
-    return effects.getOrDefault(var, null);
+    return effects.getOrDefault(var, var);
   }
 
   public void setEffects(Map<Variable, Expression<Boolean>> effects) {
@@ -185,17 +186,7 @@ public class Transition {
   public List<Variable> getStateVariables(){
     return this.stateVariables;
   }
-//
-//  public List<Variable> getNonSateVariables(){
-//    List<Variable> nonStateVariabels = new ArrayList<Variable>();
-//    Set<Variable<?>> allVariables = ExpressionUtil.freeVariables(this.convertToExpression());
-//    for(Variable var: allVariables){
-//      if(! stateVariables.contains(var)){
-//        nonStateVariabels.add(var);
-//      }
-//    }
-//    return nonStateVariabels;
-//  }
+
   public SearchIterationImage applyOn(SearchIterationImage currentState, TransitionHelper helper) {
     return helper.applyTransition(currentState, this);
   }
@@ -214,9 +205,11 @@ public class Transition {
 
   public String toStringWithId() {
     String returnValue = "id: " + id + ": ";
-    if (isOk()) {
+    if (isOk() && isError()) {
+      return returnValue + "OK/ERROR" + toStringOk();
+    } else if(isOk()) { 
       return returnValue + toStringOk();
-    } else if (isError()) {
+    }else if (isError()) {
       return returnValue + toStringError();
     } else {
       String msg = "This Transition is neither ok nor erroneous.";

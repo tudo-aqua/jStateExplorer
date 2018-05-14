@@ -33,7 +33,7 @@ public abstract class SearchIterationImage<T extends Region> {
   protected int depth = 0;
   protected StringBuilder errors = new StringBuilder();
   protected T reachableStates, newStates, previousNewStates;
-  protected List<T> historyForCE;
+  protected List<T> historyForCE = new ArrayList<>();
   
   public SearchIterationImage(T reachableStates) {
     this.reachableStates = reachableStates;
@@ -140,6 +140,9 @@ public abstract class SearchIterationImage<T extends Region> {
     }
     searchResultString.append("Further the following errors are reached:\n");
     searchResultString.append(errors);
+    searchResultString.append("We have the following Counter Example: \n");
+    searchResultString.append(historyForCE.toString());
+    
     searchResultString.append("\niteration image end\n");
   }
 }
