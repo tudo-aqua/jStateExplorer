@@ -117,7 +117,7 @@ public class Transition {
   }
 
   public Expression getEffect(Variable var) {
-    return effects.getOrDefault(var, var);
+    return effects.getOrDefault(var, null);
   }
 
   public void setEffects(Map<Variable, Expression<Boolean>> effects) {

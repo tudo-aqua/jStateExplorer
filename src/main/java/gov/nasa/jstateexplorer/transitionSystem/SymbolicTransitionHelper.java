@@ -221,7 +221,7 @@ public class SymbolicTransitionHelper extends TransitionHelper {
   }
 
   private boolean isTainted(Expression transitionEffekt, Expression guard, Variable oldVariable) {
-    if(guard == null){
+    if(guard == null || transitionEffekt == null){
       return false;
     }
     Set<Variable<?>> effectVariables = ExpressionUtil.freeVariables(transitionEffekt);
