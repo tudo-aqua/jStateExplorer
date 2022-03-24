@@ -327,7 +327,8 @@ public class TransitionSystemTest {
             new NumericBooleanExpression(y, NumericComparator.EQ, c0);
     Expression expectedInitExpression = 
             new PropositionalCompound(valueA, LogicalOperator.AND, valueB);
-    assertEquals(receivedInitState.toExpression(), expectedInitExpression);
+    assertTrue(receivedInitState.toExpression().toString().contains(valueA.toString()));
+    assertTrue(receivedInitState.toExpression().toString().contains(valueB.toString()));
   }
   
   @Test
