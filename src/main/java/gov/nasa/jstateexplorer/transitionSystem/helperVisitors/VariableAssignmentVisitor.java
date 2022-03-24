@@ -30,7 +30,7 @@ public class VariableAssignmentVisitor extends
             HashMap<Variable, List<Expression>>> {
 
   @Override
-  public <E> Expression visit(NumericBooleanExpression expr,
+  public Expression visit(NumericBooleanExpression expr,
           HashMap<Variable, List<Expression>> data) {
     Expression left = expr.getLeft(), right = expr.getRight();
     for (Variable var : data.keySet()) {

@@ -3,6 +3,7 @@ package gov.nasa.jstateexplorer.newTransitionSystem;
 import gov.nasa.jpf.constraints.api.ConstraintSolver;
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Variable;
+import gov.nasa.jpf.constraints.exceptions.ImpreciseRepresentationException;
 import gov.nasa.jpf.constraints.expressions.Constant;
 import gov.nasa.jpf.constraints.expressions.LogicalOperator;
 import gov.nasa.jpf.constraints.expressions.NumericBooleanExpression;
@@ -24,7 +25,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
-import org.antlr.runtime.RecognitionException;
 import static org.testng.Assert.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -87,7 +87,7 @@ public class TransitionSystemTest {
   }
 
   @Test
-  public void applyIterationTest() throws RecognitionException {
+  public void applyIterationTest() throws ImpreciseRepresentationException {
     String inputSystem = "VARIABLES:\n"
             + "declare x:sint32, y:sint32\n"
             + "TRANSITION h1:\n"
@@ -157,7 +157,7 @@ public class TransitionSystemTest {
   }
 
   @Test
-  public void applyIterationTillEnd1Test() throws RecognitionException {
+  public void applyIterationTillEnd1Test() throws ImpreciseRepresentationException {
     String inputSystem = "VARIABLES:\n"
             + "declare x:sint32, y:sint32\n"
             + "TRANSITION h1:\n"
@@ -326,12 +326,12 @@ public class TransitionSystemTest {
     Expression valueB = 
             new NumericBooleanExpression(y, NumericComparator.EQ, c0);
     Expression expectedInitExpression = 
-            new PropositionalCompound(valueB, LogicalOperator.AND, valueA);
+            new PropositionalCompound(valueA, LogicalOperator.AND, valueB);
     assertEquals(receivedInitState.toExpression(), expectedInitExpression);
   }
   
   @Test
-  public void reachesErrorStateTest() throws RecognitionException {
+  public void reachesErrorStateTest() throws ImpreciseRepresentationException {
     String inputSystem = "Variables:\n"
             + "declare x:sint32\n"
             + "Transition t1:\n"

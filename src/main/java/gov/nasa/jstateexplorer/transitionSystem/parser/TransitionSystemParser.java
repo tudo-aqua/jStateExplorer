@@ -2,6 +2,7 @@ package gov.nasa.jstateexplorer.transitionSystem.parser;
 
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Variable;
+import gov.nasa.jpf.constraints.exceptions.ImpreciseRepresentationException;
 import gov.nasa.jpf.constraints.parser.ParserUtil;
 import gov.nasa.jpf.constraints.types.TypeContext;
 import gov.nasa.jstateexplorer.newTransitionSystem.TransitionLabel;
@@ -13,7 +14,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import org.antlr.runtime.RecognitionException;
 
 /**
  * This is a first version for a TransitionSystemParser. Mayber it should be 
@@ -57,7 +57,7 @@ public class TransitionSystemParser {
     this.system = new ProfiledTransitionSystem();
   }
   
-  public TransitionSystem parseString(String input) throws RecognitionException {
+  public TransitionSystem parseString(String input) throws ImpreciseRepresentationException {
     String[] lines = input.split("\n");
     for(String line: lines){
       parseLine(line);
@@ -94,7 +94,7 @@ public class TransitionSystemParser {
   }
 
   private void parseEffectLine(String line) 
-          throws RecognitionException, TransitionSystemParserError {
+          throws ImpreciseRepresentationException, TransitionSystemParserError {
     if(line.contains(":")){
       String effectedVariableName = 
               TransitionSystemParserHelper.extractEffectedVariableName(line);
@@ -118,21 +118,21 @@ public class TransitionSystemParser {
     }
   }
 
-  private void parsePreconditionLine(String line) throws RecognitionException {
+  private void parsePreconditionLine(String line) throws ImpreciseRepresentationException {
     Expression<Boolean> preconditionPart = 
             ParserUtil.parseLogical(line, 
                     getTypeContext(), collectExpectedVariableInPrecondition());
     this.currentTransition.addPrecondition(preconditionPart);
   }
 
-  private void parseDeclarationLine(String line) throws RecognitionException {
+  private void parseDeclarationLine(String line) throws ImpreciseRepresentationException {
     List<Variable<?>> declaredVariables = 
             ParserUtil.parseVariableDeclaration(line);
     this.system.addVariables(declaredVariables);
     return;
   }
 
-  private void parseLine(String line) throws RecognitionException {
+  private void parseLine(String line) throws ImpreciseRepresentationException {
      String uppercaseLine = line.toUpperCase();
       if(this.newTransition 
               && !uppercaseLine.startsWith(
@@ -251,7 +251,7 @@ public class TransitionSystemParser {
     return this.system;
   }
   TransitionSystem parseFile(String fileName) 
-          throws FileNotFoundException, IOException, RecognitionException {
+          throws FileNotFoundException, IOException, ImpreciseRepresentationException {
     BufferedReader inputFile = new BufferedReader(new FileReader(fileName));
     String line;
     while((line = inputFile.readLine()) != null){
@@ -268,7 +268,7 @@ public class TransitionSystemParser {
     this.transitionParameter = true;
   }
 
-  private void parseParameterLine(String line) throws RecognitionException {
+  private void parseParameterLine(String line) throws ImpreciseRepresentationException {
     Collection<Variable<?>> parameters =
             ParserUtil.parseVariableDeclaration(line);
     for(Variable parameter: parameters){
@@ -283,7 +283,7 @@ public class TransitionSystemParser {
 
   private Expression extractExpression(
           String effectedVariableName, String line)
-          throws RecognitionException{
+          throws ImpreciseRepresentationException{
     Collection<Variable<?>> expectedVariables = 
                 collectExpectedVariablesInEffect(effectedVariableName);
     String effectString = TransitionSystemParserHelper.extractEffect(line);
@@ -293,7 +293,7 @@ public class TransitionSystemParser {
     return effect;
   }
 
-  private void parseInitLine(String line) throws RecognitionException {
+  private void parseInitLine(String line) throws ImpreciseRepresentationException {
     String effectedVariableName = 
               TransitionSystemParserHelper.extractEffectedVariableName(line);
     this.system.addInitValue(effectedVariableName,

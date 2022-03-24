@@ -3,8 +3,11 @@ package gov.nasa.jstateexplorer.newDatastructure;
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.expressions.Constant;
+import gov.nasa.jpf.constraints.expressions.LogicalOperator;
 import gov.nasa.jpf.constraints.expressions.NumericBooleanExpression;
 import gov.nasa.jpf.constraints.expressions.NumericComparator;
+import gov.nasa.jpf.constraints.expressions.PropositionalCompound;
+import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.types.TypeContext;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import gov.nasa.jstateexplorer.newTransitionSystem.Transition;
@@ -55,6 +58,9 @@ public class SymbolicState extends HashMap<Variable<?>, Expression<Boolean>>{
   private Expression getInitValue(Variable var, TypeContext types) {
     Constant constant = 
             new Constant(var.getType(), var.getType().getDefaultValue());
+    if(var.getType() instanceof BuiltinTypes.BoolType){
+      return new PropositionalCompound(var, LogicalOperator.EQUIV, constant);
+    }
     return new NumericBooleanExpression(var, NumericComparator.EQ, constant);
     
   }

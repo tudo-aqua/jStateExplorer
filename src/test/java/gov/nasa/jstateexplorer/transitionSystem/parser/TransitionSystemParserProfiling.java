@@ -1,9 +1,9 @@
 package gov.nasa.jstateexplorer.transitionSystem.parser;
 
+import gov.nasa.jpf.constraints.exceptions.ImpreciseRepresentationException;
 import gov.nasa.jstateexplorer.TestHelper;
 import gov.nasa.jstateexplorer.newTransitionSystem.TransitionSystem;
 import gov.nasa.jstateexplorer.newTransitionSystem.profiling.ProfiledTransitionSystem;
-import org.antlr.runtime.RecognitionException;
 import static org.testng.Assert.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -25,12 +25,12 @@ public class TransitionSystemParserProfiling {
 
   @Test
   public void setProfilingOnCreatesProfiledTransitionSystem() 
-          throws RecognitionException {
+          throws ImpreciseRepresentationException {
     String input = "VARIABLES:\n"
             + "declare x:sint32\n"
             + "transition t1:\n"
             + "precondition:\n"
-            + "x < 5\n"
+            + "x < 4\n"
             + "effect:\n"
             + "x: x' == x + 1";
     TransitionSystemParser parser = new TransitionSystemParser();

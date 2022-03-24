@@ -1,6 +1,7 @@
 package gov.nasa.jstateexplorer;
 
 import gov.nasa.jpf.constraints.api.ConstraintSolver;
+import gov.nasa.jpf.constraints.exceptions.ImpreciseRepresentationException;
 import gov.nasa.jpf.constraints.expressions.NumericComparator;
 import gov.nasa.jpf.constraints.expressions.Constant;
 import gov.nasa.jpf.constraints.api.Variable;
@@ -46,8 +47,7 @@ public class OldTransitionSystemTest {
     conf.setProperty("symbolic.dp", "Z3");
     conf.setProperty("symbolic.dp.z3.bitvectors", "false");
     conf.setProperty("log.finest", "psyco");
-    ConstraintSolverFactory factory = new ConstraintSolverFactory(conf);
-    solver = factory.createSolver();
+    solver = ConstraintSolverFactory.createSolver(conf);
     SearchConfig pconf = new SearchConfig();
   }
 
@@ -63,7 +63,7 @@ public class OldTransitionSystemTest {
   }
 
   @Test
-  public void loadTest(){
+  public void loadTest()throws ImpreciseRepresentationException {
     TransitionSystem system = TransitionSystemLoader.load("src" 
             + File.separator + "resources" + File.separator 
             + "transitionSystem" + File.separator + "transitionSystem.ts");
@@ -74,7 +74,7 @@ public class OldTransitionSystemTest {
   }
 
   @Test
-  public void saveAndLoadTest(){
+  public void saveAndLoadTest() throws ImpreciseRepresentationException{
     TransitionSystem system = createTransitionSystem();
     File file = new File("test");
     if(!file.exists()){

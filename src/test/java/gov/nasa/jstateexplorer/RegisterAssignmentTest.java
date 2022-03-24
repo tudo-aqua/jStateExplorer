@@ -38,8 +38,7 @@ public class RegisterAssignmentTest {
     conf.setProperty("symbolic.dp", "Z3");
     conf.setProperty("symbolic.dp.z3.bitvectors", "false");
     conf.setProperty("log.finest", "psyco");
-    ConstraintSolverFactory factory = new ConstraintSolverFactory(conf);
-    solver = factory.createSolver();
+    solver = ConstraintSolverFactory.createSolver(conf);
     SearchConfig pconf = new SearchConfig();
   }
   

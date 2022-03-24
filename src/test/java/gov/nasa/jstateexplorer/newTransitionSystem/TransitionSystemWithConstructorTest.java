@@ -1,10 +1,10 @@
 package gov.nasa.jstateexplorer.newTransitionSystem;
 
+import gov.nasa.jpf.constraints.exceptions.ImpreciseRepresentationException;
 import gov.nasa.jstateexplorer.TestHelper;
 import gov.nasa.jstateexplorer.newDatastructure.SymbolicState;
 import gov.nasa.jstateexplorer.transitionSystem.parser.TransitionSystemParser;
 import java.util.List;
-import org.antlr.runtime.RecognitionException;
 import static org.testng.Assert.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -24,7 +24,7 @@ public class TransitionSystemWithConstructorTest {
   }
   
   @Test
-  public void constructorsAreExecutedOnlyOnce() throws RecognitionException{
+  public void constructorsAreExecutedOnlyOnce() throws ImpreciseRepresentationException {
     String input = "Variables:\n"
             + "declare x:sint32\n"
             + "transition t1: \n"

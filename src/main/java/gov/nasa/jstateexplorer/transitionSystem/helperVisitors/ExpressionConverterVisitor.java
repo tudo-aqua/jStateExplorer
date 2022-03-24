@@ -68,7 +68,7 @@ public class ExpressionConverterVisitor
   }
 
   @Override
-  public <E> String visit(NumericBooleanExpression n,
+  public String visit(NumericBooleanExpression n,
           HashMap<Class, String> data) {
     String left = visit(n.getLeft(), data);
     String right = visit(n.getRight(), data);

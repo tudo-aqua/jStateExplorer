@@ -1,5 +1,8 @@
 package gov.nasa.jstateexplorer.newTransitionSystem;
 
+import gov.nasa.jpf.constraints.expressions.LogicalOperator;
+import gov.nasa.jpf.constraints.expressions.PropositionalCompound;
+import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jstateexplorer.newTransitionSystem.helper.RenameUtils;
 import gov.nasa.jpf.constraints.api.ConstraintSolver.Result;
 import gov.nasa.jpf.constraints.api.Expression;
@@ -99,8 +102,11 @@ public class TransitionLabel {
         //From a logical perspective, this doesn't change var value during the
         //transition.
         Variable primeVar = new Variable(var.getType(), var.getName() + "'");
-        returnEffect = new NumericBooleanExpression(
-                            primeVar, NumericComparator.EQ, var);
+        if(primeVar.getType() instanceof BuiltinTypes.BoolType){
+          returnEffect = new PropositionalCompound(primeVar, LogicalOperator.EQUIV, var);
+        } else {
+          returnEffect = new NumericBooleanExpression(primeVar, NumericComparator.EQ, var);
+        }
       }
       return returnEffect;
     }

@@ -16,6 +16,7 @@
 package gov.nasa.jstateexplorer;
 
 import gov.nasa.jpf.constraints.api.ConstraintSolver;
+import gov.nasa.jpf.constraints.exceptions.ImpreciseRepresentationException;
 import gov.nasa.jpf.constraints.solvers.ConstraintSolverFactory;
 import gov.nasa.jstateexplorer.datastructures.searchImage.SearchIterationImage;
 import gov.nasa.jstateexplorer.transitionSystem.SymbolicTransitionHelper;
@@ -33,7 +34,7 @@ import java.util.Properties;
 
 public class Main {
     
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ImpreciseRepresentationException {
 
         if (args.length < 1) {
             System.out.println("Usage: stateexplorer [file]");
@@ -47,8 +48,7 @@ public class Main {
         conf.setProperty("symbolic.dp", "Z3");
         conf.setProperty("symbolic.dp.z3.bitvectors", "false");
         conf.setProperty("log.finest", "psyco");
-        ConstraintSolverFactory factory = new ConstraintSolverFactory(conf);
-        ConstraintSolver solver = factory.createSolver();      
+        ConstraintSolver solver = ConstraintSolverFactory.createSolver(conf);
         
         TransitionHelper symbolicHelper = new SymbolicTransitionHelper();
         system.setHelper(symbolicHelper);

@@ -30,7 +30,7 @@ public class TransitionSystemHelper {
           Expression reached, SymbolicState state){
     Expression stateExpression = state.toExpression();
     stateExpression = ExpressionQuantifier.existensQuantification(
-                          stateExpression, state.keySet());
+                              stateExpression, state.keySet());
     reached = ((reached == null)? stateExpression:
                   ExpressionUtil.or(reached, stateExpression));
     return reached;

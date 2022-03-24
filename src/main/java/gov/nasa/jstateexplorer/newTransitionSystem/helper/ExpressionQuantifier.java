@@ -18,11 +18,12 @@ public class ExpressionQuantifier {
   public static Expression<Boolean> existensQuantification(Expression expr,
           Collection<Variable<?>> stateVariables) {    
     List<Variable<?>> toBind = collectNonStateVariable(expr, stateVariables);
+    toBind = toBind.stream().filter(v -> {return !v.getName().contains("sv");}).toList();
     if(toBind.isEmpty()){
       return expr;
     }    
     return new QuantifierExpression(Quantifier.EXISTS,
-              collectNonStateVariable(expr, stateVariables), expr);
+              toBind, expr);
   }
 
   private static ArrayList<Variable<?>> collectNonStateVariable(

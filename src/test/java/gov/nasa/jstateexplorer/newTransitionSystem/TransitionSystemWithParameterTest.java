@@ -3,6 +3,7 @@ package gov.nasa.jstateexplorer.newTransitionSystem;
 import gov.nasa.jpf.constraints.api.ConstraintSolver;
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Variable;
+import gov.nasa.jpf.constraints.exceptions.ImpreciseRepresentationException;
 import gov.nasa.jpf.constraints.expressions.Constant;
 import gov.nasa.jpf.constraints.expressions.NumericBooleanExpression;
 import gov.nasa.jpf.constraints.expressions.NumericComparator;
@@ -16,7 +17,6 @@ import gov.nasa.jstateexplorer.transitionSystem.parser.TransitionSystemParser;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
-import org.antlr.runtime.RecognitionException;
 import static org.testng.Assert.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -49,7 +49,7 @@ public class TransitionSystemWithParameterTest {
   }
 
   @Test
-  public void simpleTransitionSystemWithParameter1() throws RecognitionException, RecognitionException, RecognitionException{
+  public void simpleTransitionSystemWithParameter1() throws ImpreciseRepresentationException, ImpreciseRepresentationException, ImpreciseRepresentationException{
     String testInput = "Variables:\n"
             + "declare x:sint32\n"
             + "TRANSITION t1:\n"
@@ -115,7 +115,7 @@ public class TransitionSystemWithParameterTest {
   
   @Test
   public void simpleTransitionSystemWithParameter2()
-          throws RecognitionException {
+          throws ImpreciseRepresentationException {
     String testInput = "Variables:\n"
             + "declare x:sint32\n"
             + "TRANSITION t1:\n"
@@ -148,7 +148,7 @@ public class TransitionSystemWithParameterTest {
   }
   @Test
   public void simpleTransitionSystemWithParameter3() 
-          throws RecognitionException {
+          throws ImpreciseRepresentationException {
     String testInput = "Variables:\n"
           + "declare x:sint32\n"
           + "TRANSITION t1:\n"

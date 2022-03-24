@@ -53,7 +53,7 @@ public class VariableReplacementVisitor
   }
 
   @Override
-  public <E> Expression<?> visit(NumericBooleanExpression expr,
+  public Expression<?> visit(NumericBooleanExpression expr,
           VariableReplacementMap data) {
     Expression left = expr.getLeft(), right = expr.getRight();
     left = check(left, data);

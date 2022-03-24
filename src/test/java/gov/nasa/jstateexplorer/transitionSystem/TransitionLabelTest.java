@@ -2,6 +2,7 @@ package gov.nasa.jstateexplorer.transitionSystem;
 
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Variable;
+import gov.nasa.jpf.constraints.exceptions.ImpreciseRepresentationException;
 import gov.nasa.jpf.constraints.expressions.Constant;
 import gov.nasa.jpf.constraints.expressions.LogicalOperator;
 import gov.nasa.jpf.constraints.expressions.NumericBooleanExpression;
@@ -16,7 +17,6 @@ import gov.nasa.jstateexplorer.newTransitionSystem.TransitionLabel;
 import gov.nasa.jstateexplorer.newTransitionSystem.TransitionSystem;
 import gov.nasa.jstateexplorer.transitionSystem.parser.TransitionSystemParser;
 import java.util.Collection;
-import org.antlr.runtime.RecognitionException;
 import static org.testng.Assert.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -74,7 +74,7 @@ public class TransitionLabelTest {
   * effect clause.
   */
   @Test
-  public void effectCalculationSimple() throws RecognitionException{
+  public void effectCalculationSimple() throws ImpreciseRepresentationException {
     String testSystem = "VARIABLES:\n"
             + "declare x:sint32, y:sint32\n"
             + "TRANSITION test:\n"
@@ -113,7 +113,7 @@ public class TransitionLabelTest {
   * precondition are keept.
   */
   @Test
-  public void effectCalculationMoreComplexI() throws RecognitionException {
+  public void effectCalculationMoreComplexI() throws ImpreciseRepresentationException {
     String testSystem = "VARIABLES:\n"
             + "declare x:sint32, y:sint32\n"
             + "TRANSITION test:\n"
@@ -155,7 +155,7 @@ public class TransitionLabelTest {
   * putting precondition parts together.
   */
   @Test
-  public void effectCalculationMoreComplexII() throws RecognitionException {
+  public void effectCalculationMoreComplexII() throws ImpreciseRepresentationException {
     String testSystem = "VARIABLES:\n"
             + "declare x:sint32, y:sint32\n"
             + "TRANSITION test:\n"
@@ -204,7 +204,7 @@ public class TransitionLabelTest {
   * historie might be removed.
   */
   @Test
-  public void historieCutTest() throws RecognitionException {
+  public void historieCutTest() throws ImpreciseRepresentationException {
     String inputSystem = "VARIABLES:\n"
             + "declare x:sint32\n"
             + "TRANSITION T1:\n"
@@ -228,7 +228,7 @@ public class TransitionLabelTest {
   
   @Test
   public void historieCutTestAssiginingNegativeValues() 
-          throws RecognitionException{
+          throws ImpreciseRepresentationException{
     String inputSystem = "Variables:\n"
             + "declare x:sint32\n"
             + "Transition t1:\n"

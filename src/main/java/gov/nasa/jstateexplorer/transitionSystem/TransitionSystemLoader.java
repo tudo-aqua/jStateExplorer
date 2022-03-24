@@ -19,6 +19,7 @@ import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Valuation;
 import gov.nasa.jpf.constraints.api.ValuationEntry;
 import gov.nasa.jpf.constraints.api.Variable;
+import gov.nasa.jpf.constraints.exceptions.ImpreciseRepresentationException;
 import gov.nasa.jpf.constraints.expressions.BitvectorExpression;
 import gov.nasa.jpf.constraints.expressions.BitvectorNegation;
 import gov.nasa.jpf.constraints.expressions.BitvectorOperator;
@@ -57,7 +58,7 @@ public class TransitionSystemLoader {
     this.fileName = fileName;
   }
 
-  public TransitionSystem parseFile() {
+  public TransitionSystem parseFile() throws ImpreciseRepresentationException{
     try (BufferedReader reader = 
             new BufferedReader(new FileReader(fileName))) {
       TransitionSystem tSystem = new TransitionSystem(null);
@@ -84,7 +85,7 @@ public class TransitionSystemLoader {
     return null;
   }
 
-  private Transition parseErrorTransition() {
+  private Transition parseErrorTransition() throws ImpreciseRepresentationException {
     currentLine = currentLine.substring(2);
     Expression guard = null;
     if (nextTokenIs(TransitionEncoding.guard)) {
@@ -118,7 +119,7 @@ public class TransitionSystemLoader {
     return new Transition(guard, error, stackTrace, post, false, true);
   }
 
-  private Transition parseOkTransition() {
+  private Transition parseOkTransition() throws ImpreciseRepresentationException {
     currentLine = currentLine.substring(2);
     Expression guard;
     if (nextTokenIs(TransitionEncoding.guard)) {
@@ -142,7 +143,7 @@ public class TransitionSystemLoader {
     return new Transition(guard, post, true, false);
   }
 
-  private Map<Variable, Expression<Boolean>> parseTransitionEffect(Map<Variable, Expression<Boolean>> post) {
+  private Map<Variable, Expression<Boolean>> parseTransitionEffect(Map<Variable, Expression<Boolean>> post) throws ImpreciseRepresentationException{
     currentLine = currentLine.substring(2);
     Variable effectedVar = null;
     if (nextTokenIs(TransitionEncoding.variable)) {
@@ -157,7 +158,7 @@ public class TransitionSystemLoader {
     return post;
   }
 
-  private BitvectorExpression parseBitVectorExpression() {
+  private BitvectorExpression parseBitVectorExpression()  throws ImpreciseRepresentationException {
     currentLine = currentLine.substring(2);
     Expression left = parseNextExpression();
     currentLine = currentLine.substring(1);
@@ -177,14 +178,14 @@ public class TransitionSystemLoader {
     return new BitvectorExpression(left, operator, right);
   }
 
-  private BitvectorNegation parseBitvectorNeagtion() {
+  private BitvectorNegation parseBitvectorNeagtion()  throws ImpreciseRepresentationException {
     currentLine = currentLine.substring(2);
     Expression negated = parseNextExpression();
     currentLine = currentLine.substring(1);
     return new BitvectorNegation(negated);
   }
 
-  private Constant parseConstant() {
+  private Constant parseConstant() throws ImpreciseRepresentationException {
     currentLine = currentLine.substring(2);
     int endValue = currentLine.indexOf(':');
     String value = currentLine.substring(0, endValue);
@@ -192,17 +193,17 @@ public class TransitionSystemLoader {
     endValue = currentLine.indexOf(';');
     String type = currentLine.substring(0, endValue);
     currentLine = currentLine.substring(endValue + 1);
-    return Constant.create(resolveType(type), value);
+    return Constant.createParsed(resolveType(type), value);
   }
 
-  private Negation parseNegation() {
+  private Negation parseNegation()  throws ImpreciseRepresentationException {
     currentLine = currentLine.substring(2);
     Expression negated = parseNextExpression();
     currentLine = currentLine.substring(1);
     return new Negation(negated);
   }
 
-  private NumericBooleanExpression parseNumericBooleanExpression() {
+  private NumericBooleanExpression parseNumericBooleanExpression() throws ImpreciseRepresentationException  {
     currentLine = currentLine.substring(2);
     Expression left = parseNextExpression();
     currentLine = currentLine.substring(3);
@@ -215,7 +216,7 @@ public class TransitionSystemLoader {
     return new NumericBooleanExpression(left, op, right);
   }
 
-  private NumericCompound parseNumericCompound() {
+  private NumericCompound parseNumericCompound() throws ImpreciseRepresentationException  {
     currentLine = currentLine.substring(2);
     Expression left = parseNextExpression();
     currentLine = currentLine.substring(3);
@@ -228,7 +229,7 @@ public class TransitionSystemLoader {
     return new NumericCompound(left, op, right);
   }
 
-  private PropositionalCompound parsePropositionalCompound() {
+  private PropositionalCompound parsePropositionalCompound() throws ImpreciseRepresentationException  {
     currentLine = currentLine.substring(2);
     Expression left = parseNextExpression();
     currentLine = currentLine.substring(3);
@@ -241,14 +242,14 @@ public class TransitionSystemLoader {
     return new PropositionalCompound(left, op, right);
   }
 
-  private UnaryMinus parseUnaryMinus() {
+  private UnaryMinus parseUnaryMinus() throws ImpreciseRepresentationException  {
     currentLine = currentLine.substring(2);
     Expression unaryExpression = parseNextExpression();
     currentLine = currentLine.substring(1);
     return UnaryMinus.create(unaryExpression);
   }
 
-  private Valuation parseInitialValuation() {
+  private Valuation parseInitialValuation() throws ImpreciseRepresentationException {
     currentLine = currentLine.substring(2);
     Valuation result = new Valuation();
     while (nextTokenIs(TransitionEncoding.valuationEntry)) {
@@ -269,19 +270,19 @@ public class TransitionSystemLoader {
     return result;
   }
 
-  public static TransitionSystem load(String fileName) {
+  public static TransitionSystem load(String fileName) throws ImpreciseRepresentationException {
     TransitionSystemLoader loader = new TransitionSystemLoader(fileName);
     return loader.parseFile();
   }
 
-  private Expression parseGuard() {
+  private Expression parseGuard() throws ImpreciseRepresentationException  {
     currentLine = currentLine.substring(2);
     Expression guard = parseNextExpression();
     currentLine = currentLine.substring(1);
     return guard;
   }
 
-  private Variable parseVariable() {
+  private Variable parseVariable() throws ImpreciseRepresentationException  {
     currentLine = currentLine.substring(2);
     int endName = currentLine.indexOf(':');
     String name = currentLine.substring(0, endName);
@@ -297,7 +298,7 @@ public class TransitionSystemLoader {
     return currentLine.startsWith(prefix);
   }
 
-  private ConcreteType resolveType(String encodedType){
+  private ConcreteType resolveType(String encodedType) {
     switch(encodedType){
       case "gov.nasa.jpf.constraints.types.BuiltinTypes$SInt32Type":
         return BuiltinTypes.SINT32;
@@ -324,7 +325,7 @@ public class TransitionSystemLoader {
         throw new IllegalStateException("This Type is unknown: " + encodedType);
     }
   }
-  private Expression parseNextExpression() {
+  private Expression parseNextExpression() throws ImpreciseRepresentationException {
     char nextExpressionType = currentLine.charAt(0);
     switch (nextExpressionType) {
       case TransitionEncoding.bitVector:
@@ -355,7 +356,7 @@ public class TransitionSystemLoader {
     }
   }
 
-  private Expression parseCastExpression() {
+  private Expression parseCastExpression()  throws ImpreciseRepresentationException {
     currentLine = currentLine.substring(2);
     Expression casted = parseNextExpression();
     currentLine = currentLine.substring(1);

@@ -2,16 +2,18 @@ package gov.nasa.jstateexplorer.transitionSystem.parser;
 
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Variable;
+import gov.nasa.jpf.constraints.exceptions.ImpreciseRepresentationException;
 import gov.nasa.jpf.constraints.expressions.Constant;
+import gov.nasa.jpf.constraints.expressions.LogicalOperator;
 import gov.nasa.jpf.constraints.expressions.Negation;
 import gov.nasa.jpf.constraints.expressions.NumericBooleanExpression;
 import gov.nasa.jpf.constraints.expressions.NumericComparator;
+import gov.nasa.jpf.constraints.expressions.PropositionalCompound;
 import gov.nasa.jpf.constraints.expressions.UnaryMinus;
 import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import gov.nasa.jstateexplorer.newDatastructure.SymbolicState;
 import gov.nasa.jstateexplorer.newTransitionSystem.TransitionSystem;
-import org.antlr.runtime.RecognitionException;
 import static org.testng.Assert.*;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -39,7 +41,7 @@ public class TransitionSystemParserInitalizationTest {
 
   @Test
   public void transitionSystemWithInitValues() 
-          throws RecognitionException {
+          throws ImpreciseRepresentationException {
     String inputSystem = "VARIABLES:\n"
             + "declare t:sint32, x:sint32, y:bool, z:sint32\n"
             + "INIT:\n"
@@ -56,8 +58,8 @@ public class TransitionSystemParserInitalizationTest {
     Expression xValue = 
             new NumericBooleanExpression(x, NumericComparator.EQ, c5);
     Expression yValue = 
-            new NumericBooleanExpression(
-                    y, NumericComparator.EQ, ExpressionUtil.TRUE);
+            new PropositionalCompound(
+                    y, LogicalOperator.EQUIV, ExpressionUtil.TRUE);
     Expression tValue = 
             new NumericBooleanExpression(t, NumericComparator.EQ, neg3);
     Expression zValue = 

@@ -3,12 +3,15 @@ package gov.nasa.jstateexplorer.transitionSystem.parser;
 import gov.nasa.jpf.constraints.api.Expression;
 import gov.nasa.jpf.constraints.api.Variable;
 import gov.nasa.jpf.constraints.casts.CastOperation;
+import gov.nasa.jpf.constraints.exceptions.ImpreciseRepresentationException;
 import gov.nasa.jpf.constraints.expressions.CastExpression;
 import gov.nasa.jpf.constraints.expressions.Constant;
+import gov.nasa.jpf.constraints.expressions.LogicalOperator;
 import gov.nasa.jpf.constraints.expressions.NumericBooleanExpression;
 import gov.nasa.jpf.constraints.expressions.NumericComparator;
 import gov.nasa.jpf.constraints.expressions.NumericCompound;
 import gov.nasa.jpf.constraints.expressions.NumericOperator;
+import gov.nasa.jpf.constraints.expressions.PropositionalCompound;
 import gov.nasa.jpf.constraints.types.BuiltinTypes;
 import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import gov.nasa.jstateexplorer.newTransitionSystem.TransitionLabel;
@@ -18,7 +21,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import org.antlr.runtime.RecognitionException;
 import static org.testng.Assert.*;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -35,7 +37,7 @@ public class TransitionSystemParserBasicTest {
   }
 
   @Test
-  public void testVariableDeclaration() throws RecognitionException {
+  public void testVariableDeclaration() throws ImpreciseRepresentationException {
     parser = new TransitionSystemParser();
     String testFile = "VARIABLES\n"
             +"declare x:sint32, b:bool, c:sint8\n";
@@ -48,7 +50,7 @@ public class TransitionSystemParserBasicTest {
   }
 
   @Test
-  public void testTransitionDeclaration() throws RecognitionException{
+  public void testTransitionDeclaration() throws ImpreciseRepresentationException{
     parser = new TransitionSystemParser();
     
     String testSnippet = "VARIABLES\n"
@@ -88,7 +90,7 @@ public class TransitionSystemParserBasicTest {
   }
 
   @Test
-  public void parsingTwoTransition() throws RecognitionException {
+  public void parsingTwoTransition() throws ImpreciseRepresentationException {
     parser = new TransitionSystemParser();
 
     String input ="VARIABLES:\n"
@@ -130,7 +132,7 @@ public class TransitionSystemParserBasicTest {
   
   @Test
   public void readTransitionSystemFromFile() 
-          throws IOException, FileNotFoundException, RecognitionException {
+          throws IOException, FileNotFoundException, ImpreciseRepresentationException {
     parser = new TransitionSystemParser();
     
     String fileName = 
@@ -154,14 +156,14 @@ public class TransitionSystemParserBasicTest {
     
     Variable bPrime = new Variable(b.getType(), "b'");
     Expression bEffect = 
-            new NumericBooleanExpression(
-                    bPrime, NumericComparator.EQ, ExpressionUtil.FALSE);
+            new PropositionalCompound(
+                    bPrime, LogicalOperator.EQUIV, ExpressionUtil.FALSE);
     assertEquals(label.getEffectForVariable(b), bEffect);
     
   }
   
   @Test
-  public void transitionWithParameter() throws RecognitionException {
+  public void transitionWithParameter() throws ImpreciseRepresentationException {
     String inputFile = "VARIABLES\n"
             + "declare x:sint32\n"
             + "TRANSITION h1:\n"
@@ -190,7 +192,7 @@ public class TransitionSystemParserBasicTest {
   }
   
   @Test
-  public void errorTransition() throws RecognitionException {
+  public void errorTransition() throws ImpreciseRepresentationException {
     String inputSystem = "VARIABLES:\n"
             + "declare x:sint32\n"
             + "TRANSITION T1:\n"
@@ -212,7 +214,7 @@ public class TransitionSystemParserBasicTest {
   }
 
   @Test
-  public void mostSimpleErrorTransitionTest() throws RecognitionException {
+  public void mostSimpleErrorTransitionTest() throws ImpreciseRepresentationException {
     String inputSystem = "Variables\n"
             + "declare x:sint32\n"
             + "Transition t1:\n"

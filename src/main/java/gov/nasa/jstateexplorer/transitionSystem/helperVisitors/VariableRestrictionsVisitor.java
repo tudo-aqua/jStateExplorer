@@ -28,7 +28,7 @@ public class VariableRestrictionsVisitor extends
             List<NumericBooleanExpression>> {
 
   @Override
-  public <E> Expression<?> visit(
+  public Expression<?> visit(
           NumericBooleanExpression expr, List<NumericBooleanExpression> data) {
     data.add(expr);
     return expr;
