@@ -8,6 +8,7 @@ import gov.nasa.jpf.constraints.util.ExpressionUtil;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -18,7 +19,7 @@ public class ExpressionQuantifier {
   public static Expression<Boolean> existensQuantification(Expression expr,
           Collection<Variable<?>> stateVariables) {    
     List<Variable<?>> toBind = collectNonStateVariable(expr, stateVariables);
-    toBind = toBind.stream().filter(v -> {return !v.getName().contains("sv");}).toList();
+    toBind = toBind.stream().filter(v -> {return !v.getName().contains("sv");}).collect(Collectors.toList());
     if(toBind.isEmpty()){
       return expr;
     }    
